@@ -461,7 +461,7 @@ function displayInterpretation(interpretation) {
             <div class="learn-more">
                 <p><strong>Want to learn more?</strong></p>
                 <a href="https://estiem.org/leansixsigma" target="_blank" class="learn-link">
-                    📚 Take ESTIEM's Lean Six Sigma Course →
+                    Take ESTIEM's Lean Six Sigma Course
                 </a>
             </div>
         </div>
@@ -525,14 +525,14 @@ function generateHTMLReport() {
 </head>
 <body>
     <div class="header">
-        <h1>📊 ESTIEM EDA Analysis Report</h1>
+        <h1>ESTIEM EDA Analysis Report</h1>
         <p>Generated on ${timestamp}</p>
         <p>Data: ${currentData.filename}</p>
     </div>
     
     <div id="chart"></div>
     
-    <h2>📊 Statistical Summary</h2>
+    <h2>Statistical Summary</h2>
     <table class="stats-table">
         ${Object.entries(analysisResults.statistics || {}).map(([key, value]) => `
             <tr>
@@ -542,7 +542,7 @@ function generateHTMLReport() {
         `).join('')}
     </table>
     
-    <h2>🎯 Interpretation</h2>
+    <h2>Interpretation</h2>
     <div class="interpretation">
         <p>${analysisResults.interpretation || 'No interpretation available'}</p>
     </div>
