@@ -809,57 +809,6 @@ section h3 {
     text-transform: uppercase;
 }
 
-/* DMAIC Section */
-.dmaic-section {
-    margin-top: 3rem;
-}
-
-.dmaic-section h3 {
-    text-align: center;
-    margin-bottom: 2rem;
-    color: var(--estiem-primary);
-}
-
-.dmaic-steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    max-width: 1000px;
-    margin: 0 auto;
-}
-
-.dmaic-step {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: var(--shadow);
-    position: relative;
-}
-
-.step-number {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--estiem-primary), var(--estiem-light));
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.2rem;
-    margin: 0 auto 1rem;
-}
-
-.dmaic-step h4 {
-    color: var(--estiem-primary);
-    margin-bottom: 0.5rem;
-}
-
-.dmaic-step p {
-    color: var(--text-gray);
-    font-size: 0.9rem;
-}
 
 /* About Section */
 .about-section {
@@ -1076,9 +1025,6 @@ footer {
         text-align: center;
     }
     
-    .dmaic-steps {
-        grid-template-columns: 1fr;
-    }
     
     .learn-grid {
         grid-template-columns: 1fr;
