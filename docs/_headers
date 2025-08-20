@@ -1,0 +1,12 @@
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/pyodide/*
+  Cross-Origin-Embedder-Policy: credentialless
+
+*.js
+  Cross-Origin-Resource-Policy: cross-origin
+
+*.wasm
+  Cross-Origin-Resource-Policy: cross-origin

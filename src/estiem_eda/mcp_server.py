@@ -19,7 +19,7 @@ class ESTIEMMCPServer:
     
     def __init__(self):
         """Initialize the MCP server with tools and configuration."""
-        self.protocol_version = "1.0"
+        self.protocol_version = "2025-06-18"
         self.server_info = {
             "name": "estiem-eda",
             "version": "1.0.0",
@@ -96,8 +96,10 @@ class ESTIEMMCPServer:
         
         handlers = {
             "initialize": self.handle_initialize,
+            "initialized": self.handle_initialized,
             "tools/list": self.handle_list_tools,
-            "tools/call": self.handle_call_tool
+            "tools/call": self.handle_call_tool,
+            "notifications/cancelled": self.handle_cancelled
         }
         
         handler = handlers.get(method)
@@ -122,14 +124,50 @@ class ESTIEMMCPServer:
         """
         self.logger.info("Handling initialize request")
         
+        # Log client information for debugging
+        client_info = params.get('clientInfo', {})
+        client_protocol = params.get('protocolVersion', 'unknown')
+        self.logger.info(f"Client: {client_info.get('name', 'unknown')} v{client_info.get('version', 'unknown')}")
+        self.logger.info(f"Protocol version requested: {client_protocol}")
+        
+        # Use the client's protocol version if it's compatible, otherwise use ours
+        protocol_version = client_protocol if client_protocol.startswith('2025-') else self.protocol_version
+        
         return {
-            "protocolVersion": self.protocol_version,
+            "protocolVersion": protocol_version,
             "capabilities": {
                 "tools": {"listChanged": True},
                 "resources": {"subscribe": False}
             },
             "serverInfo": self.server_info
         }
+    
+    def handle_initialized(self, params: Dict) -> Dict:
+        """Handle initialized notification from client.
+        
+        This is called after the client has processed the initialize response
+        and is ready to start using the server.
+        
+        Args:
+            params: Notification parameters (usually empty).
+            
+        Returns:
+            Empty dict (this is a notification, no response needed).
+        """
+        self.logger.info("Client initialization complete - server ready for requests")
+        return {}
+    
+    def handle_cancelled(self, params: Dict) -> Dict:
+        """Handle operation cancellation notification.
+        
+        Args:
+            params: Cancellation parameters.
+            
+        Returns:
+            Empty dict (this is a notification).
+        """
+        self.logger.info("Operation cancelled by client")
+        return {}
     
     def handle_list_tools(self, params: Dict) -> Dict:
         """Return list of available tools.
@@ -187,7 +225,7 @@ class ESTIEMMCPServer:
             return self.error_response(-32602, f"Invalid parameters: {str(e)}")
         except Exception as e:
             self.logger.error(f"Tool execution error for {tool_name}: {e}")
-            return self.error_response(-32603, f"Execution error: {str(e)}")
+            return self.error_response(-32603, f"Tool execution failed: {str(e)}")
     
     def error_response(self, code: int, message: str) -> Dict:
         """Create error response following JSON-RPC format.
@@ -214,59 +252,77 @@ class ESTIEMMCPServer:
         """
         self.logger.info("ESTIEM EDA MCP Server started - listening on stdin")
         
-        while True:
-            try:
-                # Read request from stdin
-                line = sys.stdin.readline()
-                if not line:
-                    self.logger.info("EOF received, shutting down server")
-                    break
-                
-                line = line.strip()
-                if not line:
-                    continue
-                
-                # Parse JSON-RPC request
+        try:
+            # Enable line buffering for stdin
+            sys.stdin.reconfigure(line_buffering=True)
+            
+            while True:
                 try:
-                    request = json.loads(line)
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"Invalid JSON received: {e}")
+                    # Read request from stdin - blocking read
+                    line = sys.stdin.readline()
+                    
+                    # Only break on true EOF (empty string), not on empty lines
+                    if line == '':
+                        self.logger.info("EOF received, shutting down server")
+                        break
+                    
+                    # Skip empty lines but continue processing
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    self.logger.debug(f"Raw input received: {line}")
+                
+                    # Parse JSON-RPC request
+                    try:
+                        request = json.loads(line)
+                    except json.JSONDecodeError as e:
+                        self.logger.error(f"Invalid JSON received: {e}")
+                        continue
+                    
+                    self.logger.debug(f"Received request: {request}")
+                    
+                    # Handle request and get response
+                    if "error" in request:
+                        # This is an error response, not a request
+                        self.logger.error(f"Received error from client: {request}")
+                        continue
+                    
+                    result = self.handle_request(request)
+                    
+                    # Only send response if this is a request (has id), not a notification
+                    if "id" in request:
+                        # Create JSON-RPC response
+                        response = {
+                            "jsonrpc": "2.0",
+                            "id": request.get("id")
+                        }
+                        
+                        if "error" in result:
+                            response["error"] = result["error"]
+                        else:
+                            response["result"] = result
+                        
+                        # Send response to stdout
+                        response_json = json.dumps(response)
+                        sys.stdout.write(response_json + "\n")
+                        sys.stdout.flush()
+                        
+                        self.logger.debug(f"Sent response: {response}")
+                    else:
+                        self.logger.debug(f"Processed notification: {request.get('method')}")
+                    
+                except KeyboardInterrupt:
+                    self.logger.info("Keyboard interrupt received, shutting down")
+                    break
+                except Exception as e:
+                    self.logger.error(f"Unexpected error in main loop: {e}")
+                    # Continue running despite errors
                     continue
-                
-                self.logger.debug(f"Received request: {request}")
-                
-                # Handle request and get response
-                if "error" in request:
-                    # This is an error response, not a request
-                    self.logger.error(f"Received error from client: {request}")
-                    continue
-                
-                result = self.handle_request(request)
-                
-                # Create JSON-RPC response
-                response = {
-                    "jsonrpc": "2.0",
-                    "id": request.get("id")
-                }
-                
-                if "error" in result:
-                    response["error"] = result["error"]
-                else:
-                    response["result"] = result
-                
-                # Send response to stdout
-                response_json = json.dumps(response)
-                sys.stdout.write(response_json + "\n")
-                sys.stdout.flush()
-                
-                self.logger.debug(f"Sent response: {response}")
-                
-            except KeyboardInterrupt:
-                self.logger.info("Keyboard interrupt received, shutting down")
-                break
-            except Exception as e:
-                self.logger.error(f"Unexpected server error: {e}")
-                # Continue running despite errors
+        except Exception as e:
+            self.logger.error(f"Fatal server error: {e}")
+        finally:
+            self.logger.info("MCP Server shutting down")
 
 
 def main() -> None:

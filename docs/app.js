@@ -3,14 +3,38 @@
  * Browser-based exploratory data analysis with Pyodide
  */
 
+// Check cross-origin isolation status
+function checkCrossOriginIsolation() {
+    if (typeof crossOriginIsolated !== 'undefined' && !crossOriginIsolated) {
+        console.warn('SharedArrayBuffer disabled: Cross-origin isolation not enabled. Performance may be reduced.');
+        console.info('To enable SharedArrayBuffer, serve with Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Embedder-Policy: require-corp headers');
+    } else if (typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated) {
+        console.log('SUCCESS: Cross-origin isolation enabled, SharedArrayBuffer available');
+    }
+}
+
 // Global variables
 let pyodide = null;
 let currentData = null;
 let analysisResults = null;
 let isInitialized = false;
 
+// Security: Input sanitization
+function sanitizeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Security: Validate numeric input
+function validateNumericArray(data) {
+    if (!Array.isArray(data)) return false;
+    return data.every(item => typeof item === 'number' && !isNaN(item) && isFinite(item));
+}
+
 // Initialize application when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    checkCrossOriginIsolation();
     initializeApp();
     setupEventListeners();
 });
@@ -23,15 +47,19 @@ async function initializeApp() {
         showLoading('Initializing Python Environment...', 'Loading scientific computing libraries');
         updateProgress(10);
         
-        // Load Pyodide
+        // Performance: Load Pyodide with optimized settings
         pyodide = await loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
+            fullStdLib: false, // Don't load entire stdlib to reduce size
+            stdLibDownloadURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
+            enableProcessingMode: false // Disable processing mode for better performance
         });
         updateProgress(30);
         
-        // Install required packages (no pandas needed!)
+        // Performance: Load packages in parallel
         showLoading('Installing Packages...', 'Loading NumPy, SciPy');
-        await pyodide.loadPackage(['numpy', 'scipy']);
+        const packagePromises = ['numpy', 'scipy'].map(pkg => pyodide.loadPackage(pkg));
+        await Promise.all(packagePromises);
         updateProgress(60);
         
         // Load our statistical tools
@@ -53,7 +81,23 @@ async function initializeApp() {
         
     } catch (error) {
         console.error('ERROR: Initialization failed:', error);
-        showError('Failed to initialize. Please refresh the page.', error.message);
+        
+        // Provide more helpful error messages based on error type
+        let userMessage = 'Failed to initialize. Please refresh the page.';
+        let details = error.message;
+        
+        if (error.message.includes('fetch')) {
+            userMessage = 'Network error loading Python environment';
+            details = 'Please check your internet connection and try again';
+        } else if (error.message.includes('WebAssembly')) {
+            userMessage = 'Your browser may not support WebAssembly';
+            details = 'Please try using a modern browser (Chrome, Firefox, Safari, Edge)';
+        } else if (error.message.includes('SharedArrayBuffer')) {
+            userMessage = 'Browser security settings may be blocking the app';
+            details = 'Try refreshing the page or using a different browser';
+        }
+        
+        showError(userMessage, details);
     }
 }
 
@@ -112,22 +156,32 @@ function handleFileUpload(file) {
     showLoading('Reading CSV file...', 'Processing your data');
     
     Papa.parse(file, {
-        complete: function(results) {
-            hideLoading();
-            if (results.errors.length > 0) {
-                console.warn('CSV parsing warnings:', results.errors);
+        complete: (results) => {
+            try {
+                hideLoading();
+                if (results.errors.length > 0) {
+                    console.warn('CSV parsing warnings:', results.errors);
+                }
+                
+                // Security: Validate data structure
+                if (!results.data || !Array.isArray(results.data) || results.data.length === 0) {
+                    throw new Error('Invalid CSV data: file appears to be empty or malformed');
+                }
+                
+                currentData = {
+                    data: results.data,
+                    headers: results.meta.fields || Object.keys(results.data[0] || {}),
+                    filename: sanitizeHTML(file.name)
+                };
+                
+                displayDataPreview();
+                showTools();
+            } catch (error) {
+                hideLoading();
+                showError('Failed to process CSV data', error.message);
             }
-            
-            currentData = {
-                data: results.data,
-                headers: results.meta.fields || Object.keys(results.data[0] || {}),
-                filename: file.name
-            };
-            
-            displayDataPreview();
-            showTools();
         },
-        error: function(error) {
+        error: (error) => {
             hideLoading();
             showError('Failed to read CSV', error.message);
         },

@@ -6,6 +6,21 @@
     <title>ESTIEM EDA Toolkit - Free Exploratory Data Analysis</title>
     <meta name="description" content="Exploratory data analysis tools for statistical process control. I-Charts, Process Capability, ANOVA, Pareto Analysis. No installation required.">
     
+    <!-- Security Headers for SharedArrayBuffer -->
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self'; 
+                   script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.plot.ly https://cdnjs.cloudflare.com;
+                   style-src 'self' 'unsafe-inline';
+                   img-src 'self' data: https:;
+                   font-src 'self' https:;
+                   connect-src 'self' https: blob:;
+                   worker-src 'self' blob:;
+                   child-src 'self' blob:">
+    
     <!-- SEO & Social -->
     <meta property="og:title" content="Free Exploratory Data Analysis Tools by ESTIEM">
     <meta property="og:description" content="EDA tools for Six Sigma and statistical process control. Used by 60,000+ students.">
@@ -71,11 +86,13 @@
         <!-- File Upload Section -->
         <section class="upload-section" id="uploadSection">
             <h3>Upload Your Data</h3>
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📁</div>
+            <div class="upload-area" id="uploadArea" role="button" tabindex="0" 
+                 aria-label="Click or drag to upload CSV file" 
+                 aria-describedby="upload-description">
+                <div class="upload-icon" aria-hidden="true">📁</div>
                 <h4>Drop CSV file here or click to browse</h4>
-                <p>Your data never leaves your browser - 100% private</p>
-                <input type="file" id="fileInput" accept=".csv" hidden>
+                <p id="upload-description">Your data never leaves your browser - 100% private</p>
+                <input type="file" id="fileInput" accept=".csv" aria-label="Choose CSV file to upload" hidden>
             </div>
             
             <!-- Sample Data Options -->
