@@ -60,18 +60,11 @@ class ESTIEMMCPServer:
         self.tools = {}
         
         try:
-            from .tools.i_chart import IChartTool
-            self.tools["i_chart"] = IChartTool()
-            self.logger.debug("I-Chart tool loaded successfully")
+            from .tools.process_analysis import ProcessAnalysisTool
+            self.tools["process_analysis"] = ProcessAnalysisTool()
+            self.logger.debug("Process Analysis tool loaded successfully")
         except ImportError as e:
-            self.logger.warning(f"I-Chart tool not available: {e}")
-        
-        try:
-            from .tools.capability import CapabilityTool
-            self.tools["process_capability"] = CapabilityTool()
-            self.logger.debug("Process Capability tool loaded successfully")
-        except ImportError as e:
-            self.logger.warning(f"Process Capability tool not available: {e}")
+            self.logger.warning(f"Process Analysis tool not available: {e}")
         
         try:
             from .tools.anova import ANOVATool
@@ -86,13 +79,6 @@ class ESTIEMMCPServer:
             self.logger.debug("Pareto Analysis tool loaded successfully")
         except ImportError as e:
             self.logger.warning(f"Pareto Analysis tool not available: {e}")
-        
-        try:
-            from .tools.probability_plot import ProbabilityPlotTool
-            self.tools["probability_plot"] = ProbabilityPlotTool()
-            self.logger.debug("Probability Plot tool loaded successfully")
-        except ImportError as e:
-            self.logger.warning(f"Probability Plot tool not available: {e}")
         
         self.logger.info(f"Initialized {len(self.tools)} statistical tools")
     

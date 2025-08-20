@@ -369,7 +369,7 @@ async function runAnalysis(analysisType) {
     }
     
     // Show parameter modal for analyses that need parameters
-    if (['capability', 'anova'].includes(analysisType)) {
+    if (['anova', 'process_analysis'].includes(analysisType)) {
         showParameterModal(analysisType);
         return;
     }
@@ -390,22 +390,7 @@ function showParameterModal(analysisType) {
     
     let formHTML = '';
     
-    if (analysisType === 'capability') {
-        formHTML = `
-            <div class="form-group">
-                <label for="lsl">Lower Specification Limit (LSL):</label>
-                <input type="number" id="lsl" step="any" placeholder="e.g. 9.5" required>
-            </div>
-            <div class="form-group">
-                <label for="usl">Upper Specification Limit (USL):</label>
-                <input type="number" id="usl" step="any" placeholder="e.g. 10.5" required>
-            </div>
-            <div class="form-group">
-                <label for="target">Target Value (optional):</label>
-                <input type="number" id="target" step="any" placeholder="e.g. 10.0">
-            </div>
-        `;
-    } else if (analysisType === 'anova') {
+    if (analysisType === 'anova') {
         const numericColumns = currentData.headers.filter(header => {
             return currentData.data.some(row => typeof row[header] === 'number');
         });
@@ -430,6 +415,41 @@ function showParameterModal(analysisType) {
                 </select>
             </div>
         `;
+    } else if (analysisType === 'process_analysis') {
+        const numericColumns = currentData.headers.filter(header => {
+            return currentData.data.some(row => typeof row[header] === 'number');
+        });
+        
+        formHTML = `
+            <div class="form-group">
+                <label for="dataColumn">Measurement Column:</label>
+                <select id="dataColumn" required>
+                    <option value="">Select column...</option>
+                    ${numericColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="lsl">Lower Specification Limit (optional):</label>
+                <input type="number" id="lsl" step="any" placeholder="e.g. 9.5">
+            </div>
+            <div class="form-group">
+                <label for="usl">Upper Specification Limit (optional):</label>
+                <input type="number" id="usl" step="any" placeholder="e.g. 10.5">
+            </div>
+            <div class="form-group">
+                <label for="target">Target Value (optional):</label>
+                <input type="number" id="target" step="any" placeholder="e.g. 10.0">
+            </div>
+            <div class="form-group">
+                <label for="distribution">Distribution Type:</label>
+                <select id="distribution">
+                    <option value="normal">Normal</option>
+                    <option value="lognormal">Log-Normal</option>
+                    <option value="exponential">Exponential</option>
+                    <option value="weibull">Weibull</option>
+                </select>
+            </div>
+        `;
     }
     
     body.innerHTML = formHTML;
@@ -450,24 +470,7 @@ function showParameterModal(analysisType) {
  * Collect parameters from modal
  */
 function collectParameters(analysisType) {
-    if (analysisType === 'capability') {
-        const lsl = parseFloat(document.getElementById('lsl').value);
-        const usl = parseFloat(document.getElementById('usl').value);
-        const target = document.getElementById('target').value ? 
-            parseFloat(document.getElementById('target').value) : null;
-        
-        if (isNaN(lsl) || isNaN(usl)) {
-            showError('Invalid parameters', 'Please enter valid LSL and USL values');
-            return null;
-        }
-        
-        if (lsl >= usl) {
-            showError('Invalid parameters', 'LSL must be less than USL');
-            return null;
-        }
-        
-        return { lsl, usl, target };
-    } else if (analysisType === 'anova') {
+    if (analysisType === 'anova') {
         const valueColumn = document.getElementById('valueColumn').value;
         const groupColumn = document.getElementById('groupColumn').value;
         
@@ -477,6 +480,41 @@ function collectParameters(analysisType) {
         }
         
         return { valueColumn, groupColumn };
+    } else if (analysisType === 'process_analysis') {
+        const dataColumn = document.getElementById('dataColumn').value;
+        const lsl = document.getElementById('lsl').value ? 
+            parseFloat(document.getElementById('lsl').value) : null;
+        const usl = document.getElementById('usl').value ? 
+            parseFloat(document.getElementById('usl').value) : null;
+        const target = document.getElementById('target').value ? 
+            parseFloat(document.getElementById('target').value) : null;
+        const distribution = document.getElementById('distribution').value;
+        
+        if (!dataColumn) {
+            showError('Missing parameter', 'Please select a measurement column');
+            return null;
+        }
+        
+        // Validate specification limits if provided
+        if ((lsl !== null && isNaN(lsl)) || (usl !== null && isNaN(usl)) || (target !== null && isNaN(target))) {
+            showError('Invalid parameters', 'Please enter valid numeric values for specification limits');
+            return null;
+        }
+        
+        if (lsl !== null && usl !== null && lsl >= usl) {
+            showError('Invalid parameters', 'LSL must be less than USL');
+            return null;
+        }
+        
+        const params = { dataColumn, distribution };
+        if (lsl !== null || usl !== null || target !== null) {
+            params.specification_limits = {};
+            if (lsl !== null) params.specification_limits.lsl = lsl;
+            if (usl !== null) params.specification_limits.usl = usl;
+            if (target !== null) params.specification_limits.target = target;
+        }
+        
+        return params;
     }
     
     return {};
@@ -807,11 +845,9 @@ function showWelcomeMessage() {
 
 function getAnalysisTitle(type) {
     const titles = {
-        'i_chart': 'Individual Control Chart',
-        'capability': 'Process Capability Analysis',
+        'process_analysis': 'Process Analysis',
         'anova': 'Analysis of Variance (ANOVA)',
-        'pareto': 'Pareto Analysis',
-        'probability_plot': 'Probability Plot'
+        'pareto': 'Pareto Analysis'
     };
     return titles[type] || 'Exploratory Data Analysis';
 }

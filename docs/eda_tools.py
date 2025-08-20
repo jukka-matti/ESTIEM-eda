@@ -751,25 +751,87 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
     try:
         print(f"SUCCESS: Processing {analysis_type} analysis")
         
-        if analysis_type == 'i_chart':
-            values = validate_numeric_data_browser(data, min_points=3)
-            title = parameters.get('title', 'I-Chart Analysis')
-            result = calculate_i_chart_browser(values, title)
+        if analysis_type == 'process_analysis':
+            # Handle web data format with column selection
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                data_column = parameters.get('dataColumn')
+                if not data_column:
+                    raise ValueError("Process analysis requires a data column selection")
+                
+                # Extract numeric values from selected column
+                values = []
+                for row in data:
+                    value = row.get(data_column)
+                    if value is not None:
+                        try:
+                            values.append(float(value))
+                        except (ValueError, TypeError):
+                            continue
+                
+                if len(values) < 10:
+                    raise ValueError(f"Process analysis requires at least 10 valid numeric values, got {len(values)}")
+            else:
+                values = validate_numeric_data_browser(data, min_points=10)
             
-            # Add chart data for web visualization
-            result['chart_data'] = _generate_i_chart_plotly(result, title)
-            return result
+            # Parse parameters
+            spec_limits = parameters.get('specification_limits', {})
+            distribution = parameters.get('distribution', 'normal')
+            confidence_level = float(parameters.get('confidence_level', 0.95))
             
-        elif analysis_type == 'capability':
-            values = validate_numeric_data_browser(data, min_points=10)
-            lsl = float(parameters.get('lsl'))
-            usl = float(parameters.get('usl'))
-            target = parameters.get('target')
-            if target is not None:
-                target = float(target)
+            # Run individual analyses
+            result = {}
             
-            result = calculate_capability_browser(values, lsl, usl, target)
-            result['chart_data'] = _generate_capability_plotly(result, values)
+            # 1. Stability Analysis (I-Chart)
+            try:
+                stability_result = calculate_i_chart_browser(values, "Stability Assessment")
+                result['stability_analysis'] = {
+                    'statistics': stability_result.get('statistics', {}),
+                    'out_of_control_indices': stability_result.get('out_of_control_indices', []),
+                    'control_status': 'in_control' if len(stability_result.get('out_of_control_indices', [])) == 0 else 'out_of_control'
+                }
+            except Exception as e:
+                result['stability_analysis'] = {'error': str(e)}
+            
+            # 2. Capability Analysis (if spec limits provided)
+            if spec_limits and ('lsl' in spec_limits or 'usl' in spec_limits):
+                try:
+                    lsl = spec_limits.get('lsl')
+                    usl = spec_limits.get('usl')
+                    target = spec_limits.get('target')
+                    
+                    capability_result = calculate_capability_browser(values, lsl, usl, target)
+                    result['capability_analysis'] = {
+                        'statistics': capability_result.get('statistics', {}),
+                        'capability_indices': capability_result.get('capability_indices', {}),
+                        'defect_analysis': capability_result.get('defect_analysis', {}),
+                        'specification_limits': spec_limits
+                    }
+                except Exception as e:
+                    result['capability_analysis'] = {'error': str(e)}
+            else:
+                result['capability_analysis'] = {
+                    'note': 'Specification limits not provided - capability analysis skipped'
+                }
+            
+            # 3. Distribution Analysis (Probability Plot)
+            try:
+                distribution_result = calculate_probability_plot_browser(values, distribution, confidence_level)
+                result['distribution_analysis'] = {
+                    'distribution': distribution,
+                    'statistics': distribution_result.get('statistics', {}),
+                    'goodness_of_fit': distribution_result.get('goodness_of_fit', {}),
+                    'theoretical_quantiles': distribution_result.get('theoretical_quantiles', []),
+                    'sorted_values': distribution_result.get('sorted_values', [])
+                }
+            except Exception as e:
+                result['distribution_analysis'] = {'error': str(e)}
+            
+            # Create comprehensive interpretation
+            result['interpretation'] = _create_process_analysis_interpretation(result, len(values))
+            
+            # Generate combined visualization
+            result['chart_data'] = _generate_process_analysis_plotly(result, values, spec_limits)
+            
             return result
             
         elif analysis_type == 'anova':
@@ -806,14 +868,6 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
             threshold = float(parameters.get('threshold', 0.8))
             result = calculate_pareto_browser(pareto_data, threshold)
             result['chart_data'] = _generate_pareto_plotly(result)
-            return result
-            
-        elif analysis_type == 'probability_plot':
-            values = validate_numeric_data_browser(data, min_points=3)
-            distribution = parameters.get('distribution', 'normal')
-            confidence_level = float(parameters.get('confidence_level', 0.95))
-            result = calculate_probability_plot_browser(values, distribution, confidence_level)
-            result['chart_data'] = _generate_probability_plot_plotly(result)
             return result
             
         else:
@@ -1165,6 +1219,91 @@ def _generate_probability_plot_plotly(result: Dict[str, Any]) -> str:
     }
     
     return json.dumps({"data": traces, "layout": layout})
+
+
+def _create_process_analysis_interpretation(result: Dict[str, Any], sample_size: int) -> str:
+    """Create comprehensive interpretation for process analysis."""
+    interpretations = []
+    
+    interpretations.append(f"Process analysis of {sample_size} measurements.")
+    
+    # Stability assessment
+    stability = result.get('stability_analysis', {})
+    control_status = stability.get('control_status', 'unknown')
+    if control_status == 'in_control':
+        interpretations.append("Process appears statistically stable with no out-of-control points detected.")
+    elif control_status == 'out_of_control':
+        ooc_count = len(stability.get('out_of_control_indices', []))
+        interpretations.append(f"Process shows instability with {ooc_count} out-of-control points requiring investigation.")
+    
+    # Capability assessment
+    capability = result.get('capability_analysis', {})
+    if 'capability_indices' in capability:
+        indices = capability['capability_indices']
+        cpk = indices.get('cpk', 0)
+        if cpk >= 1.33:
+            interpretations.append(f"Process is capable (Cpk = {cpk:.3f}) and meets specification requirements.")
+        elif cpk >= 1.0:
+            interpretations.append(f"Process has marginal capability (Cpk = {cpk:.3f}) and may need improvement.")
+        else:
+            interpretations.append(f"Process is not capable (Cpk = {cpk:.3f}) and requires significant improvement.")
+    elif 'note' in capability:
+        interpretations.append("Capability analysis requires specification limits for assessment.")
+    
+    # Distribution assessment
+    distribution = result.get('distribution_analysis', {})
+    if 'goodness_of_fit' in distribution:
+        gof = distribution['goodness_of_fit']
+        dist_type = distribution.get('distribution', 'normal')
+        p_value = gof.get('p_value', 0)
+        if p_value > 0.05:
+            interpretations.append(f"Data follows {dist_type} distribution (p-value = {p_value:.4f}).")
+        else:
+            interpretations.append(f"Data does not follow {dist_type} distribution (p-value = {p_value:.4f}).")
+    
+    return " ".join(interpretations)
+
+
+def _generate_process_analysis_plotly(result: Dict[str, Any], values: List[float], spec_limits: Dict[str, Any]) -> str:
+    """Generate combined Plotly visualization for process analysis."""
+    # For now, generate I-Chart as the primary visualization
+    # Future enhancement: Create multi-panel dashboard
+    
+    stability = result.get('stability_analysis', {})
+    if 'statistics' in stability:
+        # Create I-Chart data structure
+        i_chart_result = {
+            'data_points': values,
+            'control_limits': {
+                'ucl': stability['statistics'].get('ucl', 0),
+                'lcl': stability['statistics'].get('lcl', 0),
+                'cl': stability['statistics'].get('mean', 0)
+            },
+            'out_of_control_indices': stability.get('out_of_control_indices', [])
+        }
+        
+        return _generate_i_chart_plotly(i_chart_result, "Process Analysis - Control Chart")
+    else:
+        # Fallback: Simple line chart
+        x_values = list(range(1, len(values) + 1))
+        
+        trace = {
+            "x": x_values,
+            "y": values,
+            "type": "scatter",
+            "mode": "lines+markers",
+            "name": "Process Data",
+            "line": {"color": "#1f4e79", "width": 2},
+            "marker": {"color": "#1f4e79", "size": 6}
+        }
+        
+        layout = {
+            "title": {"text": "Process Analysis", "font": {"size": 16, "color": "#1f4e79"}},
+            "xaxis": {"title": "Sample Number"},
+            "yaxis": {"title": "Measurement Value"}
+        }
+        
+        return json.dumps({"data": [trace], "layout": layout})
 
 
 print("SUCCESS: ESTIEM EDA Browser Tools loaded - unified with MCP implementation")

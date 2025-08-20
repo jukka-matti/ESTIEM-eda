@@ -20,49 +20,43 @@ def main():
     try:
         from estiem_eda.mcp_server import ESTIEMMCPServer
         server = ESTIEMMCPServer()
-        assert len(server.tools) == 5
-        print("   PASS: 5 tools loaded")
+        assert len(server.tools) == 3
+        print("   PASS: 3 core tools loaded")
         passed += 1
     except Exception as e:
         print(f"   FAIL: {e}")
         failed += 1
     
-    # Test 2: I-Chart basic functionality
-    print("\n2. I-Chart Tool...")
+    # Test 2: Process Analysis Tool
+    print("\n2. Process Analysis Tool...")
     try:
-        from estiem_eda.tools.i_chart import IChartTool
-        tool = IChartTool()
-        data = [10.0, 10.5, 9.5, 10.2, 9.8, 10.1, 9.9, 10.3]
-        result = tool.execute({"data": data})
+        from estiem_eda.tools.process_analysis import ProcessAnalysisTool
+        
+        tool = ProcessAnalysisTool()
+        test_data = [9.8, 10.1, 9.9, 10.2, 10.0, 9.7, 10.3, 9.9, 10.1, 10.0] * 5
+        
+        result = tool.execute({
+            "data": test_data,
+            "specification_limits": {"lsl": 9.5, "usl": 10.5, "target": 10.0},
+            "title": "Test Process Analysis"
+        })
+        
         assert result["success"] is True
-        assert "statistics" in result
-        assert "out_of_control_indices" in result
+        assert "process_summary" in result
+        assert "stability_analysis" in result
+        assert "capability_analysis" in result
+        assert "distribution_analysis" in result
+        assert "overall_assessment" in result
         assert "interpretation" in result
-        print("   PASS: I-Chart working")
+        
+        print(f"   PASS: Process Analysis working")
         passed += 1
     except Exception as e:
         print(f"   FAIL: {e}")
         failed += 1
     
-    # Test 3: Capability Tool
-    print("\n3. Capability Tool...")
-    try:
-        from estiem_eda.tools.capability import CapabilityTool
-        tool = CapabilityTool()
-        # Use simple test data instead of numpy random
-        data = [9.8, 10.1, 9.9, 10.2, 10.0, 9.7, 10.3, 9.9, 10.1, 10.0] * 10  # 100 points
-        result = tool.execute({"data": data, "lsl": 9.0, "usl": 11.0, "target": 10.0})
-        assert result["success"] is True
-        assert "capability_indices" in result
-        assert "statistics" in result
-        print("   PASS: Capability working")
-        passed += 1
-    except Exception as e:
-        print(f"   FAIL: {e}")
-        failed += 1
-    
-    # Test 4: ANOVA Tool
-    print("\n4. ANOVA Tool...")
+    # Test 3: ANOVA Tool
+    print("\n3. ANOVA Tool...")
     try:
         from estiem_eda.tools.anova import ANOVATool
         tool = ANOVATool()
@@ -81,8 +75,8 @@ def main():
         print(f"   FAIL: {e}")
         failed += 1
     
-    # Test 5: Pareto Tool  
-    print("\n5. Pareto Tool...")
+    # Test 4: Pareto Tool  
+    print("\n4. Pareto Tool...")
     try:
         from estiem_eda.tools.pareto import ParetoTool
         tool = ParetoTool()
@@ -97,8 +91,8 @@ def main():
         print(f"   FAIL: {e}")
         failed += 1
     
-    # Test 6: MCP Protocol
-    print("\n6. MCP Protocol...")
+    # Test 5: MCP Protocol
+    print("\n5. MCP Protocol...")
     try:
         server = ESTIEMMCPServer()
         
@@ -108,12 +102,12 @@ def main():
         
         # Test list tools
         list_resp = server.handle_list_tools({})
-        assert len(list_resp["tools"]) == 5
+        assert len(list_resp["tools"]) == 3
         
         # Test tool execution
         call_resp = server.handle_call_tool({
-            "name": "i_chart", 
-            "arguments": {"data": [10, 11, 9]}
+            "name": "process_analysis", 
+            "arguments": {"data": [10, 11, 9, 10.5, 9.5, 10.2, 9.8]}
         })
         assert "content" in call_resp
         print("   PASS: MCP protocol working")
@@ -122,33 +116,6 @@ def main():
         print(f"   FAIL: {e}")
         failed += 1
     
-    # Test 7: Probability Plot functionality
-    print("\n7. Probability Plot Analysis...")
-    try:
-        from estiem_eda.tools.probability_plot import ProbabilityPlotTool
-        
-        tool = ProbabilityPlotTool()
-        # Use deterministic test data instead of numpy random
-        test_data = [8.1, 8.5, 9.2, 9.8, 10.1, 10.3, 10.7, 11.1, 11.5, 12.0,
-                    8.3, 8.9, 9.5, 10.0, 10.4, 10.8, 11.2, 11.6, 12.2, 8.7,
-                    9.1, 9.6, 10.2, 10.5, 10.9, 11.3, 11.7, 12.1, 8.2, 8.8]
-        
-        result = tool.execute({
-            "data": test_data,
-            "distribution": "normal",
-            "confidence_level": 0.95
-        })
-        
-        assert result["success"] is True
-        assert "goodness_of_fit" in result
-        assert "sorted_values" in result
-        assert "theoretical_quantiles" in result
-        
-        print(f"   PASS: Probability plot working")
-        passed += 1
-    except Exception as e:
-        print(f"   FAIL: {e}")
-        failed += 1
     
     # Results
     print("\n" + "=" * 40)

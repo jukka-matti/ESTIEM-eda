@@ -392,6 +392,19 @@ section h3 {
     margin: 0 auto;
 }
 
+.tools-grid.streamlined {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1200px;
+    gap: 2.5rem;
+}
+
+@media (max-width: 968px) {
+    .tools-grid.streamlined {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+    }
+}
+
 .tool-card {
     background: white;
     border-radius: var(--border-radius);
@@ -453,6 +466,38 @@ section h3 {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Featured tool card */
+.tool-card.featured {
+    border: 2px solid var(--estiem-primary);
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    position: relative;
+}
+
+.tool-card.featured::after {
+    content: '✨ NEW';
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    background: linear-gradient(135deg, var(--estiem-primary), var(--estiem-light));
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 0 var(--border-radius) 0 15px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tool-card.featured .tool-icon {
+    color: var(--estiem-primary);
+    filter: drop-shadow(0 2px 4px rgba(32, 94, 68, 0.2));
+}
+
+.tool-card.featured .tool-badge {
+    background: linear-gradient(135deg, var(--estiem-primary), var(--estiem-light));
+    box-shadow: 0 2px 8px rgba(32, 94, 68, 0.3);
 }
 
 /* Modal */

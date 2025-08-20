@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESTIEM EDA Toolkit - Free Exploratory Data Analysis</title>
-    <meta name="description" content="Exploratory data analysis tools for statistical process control. I-Charts, Process Capability, ANOVA, Pareto Analysis. No installation required.">
+    <meta name="description" content="Professional exploratory data analysis toolkit for Six Sigma. Process Analysis, ANOVA, Pareto Analysis. No installation required.">
     
     <!-- Security Headers for SharedArrayBuffer -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
@@ -23,7 +23,7 @@
     
     <!-- SEO & Social -->
     <meta property="og:title" content="Free Exploratory Data Analysis Tools by ESTIEM">
-    <meta property="og:description" content="EDA tools for Six Sigma and statistical process control. Used by 60,000+ students.">
+    <meta property="og:description" content="Professional Six Sigma toolkit with 3 core analysis tools. Used by 60,000+ students worldwide.">
     <meta property="og:image" content="https://estiem.github.io/eda-toolkit/preview.png">
     <meta property="og:url" content="https://estiem.github.io/eda-toolkit/">
     
@@ -58,12 +58,12 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <h2>Exploratory Data Analysis - Forever Free</h2>
-            <p class="hero-subtitle">No installation • No sign-up • Professional results</p>
+            <h2>Professional Six Sigma Toolkit - Forever Free</h2>
+            <p class="hero-subtitle">3 Core Tools • No installation • Professional results</p>
             <div class="stats">
                 <div class="stat-item">
                     <span class="stat-icon">📊</span>
-                    <span>5 Statistical Tools</span>
+                    <span>3 Core Tools</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-icon">🎓</span>
@@ -127,40 +127,26 @@
         <!-- Analysis Tools Section -->
         <section class="tools-section" id="toolsSection" style="display:none;">
             <h3>Select Analysis Type</h3>
-            <div class="tools-grid">
-                <div class="tool-card" onclick="runAnalysis('i_chart')">
-                    <div class="tool-icon">📈</div>
-                    <h4>I-Chart</h4>
-                    <p>Individual control chart for process monitoring</p>
-                    <div class="tool-badge">SPC</div>
-                </div>
-                
-                <div class="tool-card" onclick="runAnalysis('capability')">
-                    <div class="tool-icon">🎯</div>
-                    <h4>Process Capability</h4>
-                    <p>Calculate Cp, Cpk, and Six Sigma level</p>
-                    <div class="tool-badge">Quality</div>
+            <div class="tools-grid streamlined">
+                <div class="tool-card featured" onclick="runAnalysis('process_analysis')">
+                    <div class="tool-icon">🔬</div>
+                    <h4>Process Analysis</h4>
+                    <p>Complete process assessment: stability, capability & distribution analysis</p>
+                    <div class="tool-badge">Six Sigma</div>
                 </div>
                 
                 <div class="tool-card" onclick="runAnalysis('anova')">
                     <div class="tool-icon">📊</div>
                     <h4>ANOVA</h4>
-                    <p>Compare groups with statistical significance</p>
-                    <div class="tool-badge">Analysis</div>
+                    <p>Compare multiple groups with statistical significance testing</p>
+                    <div class="tool-badge">Comparison</div>
                 </div>
                 
                 <div class="tool-card" onclick="runAnalysis('pareto')">
                     <div class="tool-icon">📉</div>
                     <h4>Pareto Analysis</h4>
-                    <p>Identify vital few (80/20 rule)</p>
+                    <p>Identify vital few problems using the 80/20 principle</p>
                     <div class="tool-badge">Root Cause</div>
-                </div>
-
-                <div class="tool-card" onclick="runAnalysis('probability_plot')">
-                    <div class="tool-icon">📋</div>
-                    <h4>Probability Plot</h4>
-                    <p>Assess normality with confidence intervals</p>
-                    <div class="tool-badge">Distribution</div>
                 </div>
             </div>
         </section>
