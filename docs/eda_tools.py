@@ -831,6 +831,8 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
             
             # Generate combined visualization
             result['chart_data'] = _generate_process_analysis_plotly(result, values, spec_limits)
+            result['success'] = True
+            result['analysis_type'] = 'process_analysis'
             
             return result
             
@@ -861,6 +863,8 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
             alpha = float(parameters.get('alpha', 0.05))
             result = calculate_anova_browser(validated_groups, alpha)
             result['chart_data'] = _generate_anova_plotly(result, validated_groups)
+            result['success'] = True
+            result['analysis_type'] = 'anova'
             return result
             
         elif analysis_type == 'pareto':
@@ -868,17 +872,36 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
             threshold = float(parameters.get('threshold', 0.8))
             result = calculate_pareto_browser(pareto_data, threshold)
             result['chart_data'] = _generate_pareto_plotly(result)
+            result['success'] = True
+            result['analysis_type'] = 'pareto'
             return result
             
         else:
             raise ValueError(f'Unknown analysis type: {analysis_type}')
             
     except Exception as e:
-        print(f"ERROR: Analysis error: {str(e)}")
+        error_message = str(e)
+        print(f"ERROR: Analysis error: {error_message}")
+        
+        # Provide more helpful error messages
+        user_message = error_message
+        if 'requires at least' in error_message:
+            user_message = f"Insufficient data: {error_message}"
+        elif 'not provided' in error_message or 'missing' in error_message.lower():
+            user_message = f"Missing parameters: {error_message}"
+        elif 'invalid' in error_message.lower():
+            user_message = f"Data validation failed: {error_message}"
+        elif 'column' in error_message.lower():
+            user_message = f"Column error: {error_message}"
+        
         return {
             'success': False,
-            'error': str(e),
-            'analysis_type': analysis_type
+            'error': user_message,
+            'analysis_type': analysis_type,
+            'technical_error': error_message,  # Keep original for debugging
+            'chart_data': None,
+            'statistics': {},
+            'interpretation': ''
         }
 
 

@@ -108,7 +108,18 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPlotlyWithFallback();  // Start loading Plotly with fallback system
     initializeApp();
     setupEventListeners();
+    hideResultsSection(); // Ensure results are hidden initially
 });
+
+/**
+ * Hide results section completely
+ */
+function hideResultsSection() {
+    const resultsSection = document.getElementById('resultsSection');
+    if (resultsSection) {
+        resultsSection.style.display = 'none';
+    }
+}
 
 /**
  * Initialize Pyodide and Python environment
@@ -286,11 +297,22 @@ json.dumps(sample_data)
         const result = pyodide.runPython(pythonCode);
         const sampleData = JSON.parse(result);
         
+        // Validate sample data structure
+        if (!sampleData.data || !Array.isArray(sampleData.data) || sampleData.data.length === 0) {
+            throw new Error('Sample data generation failed - no data returned');
+        }
+        
+        if (!sampleData.headers || !Array.isArray(sampleData.headers) || sampleData.headers.length === 0) {
+            throw new Error('Sample data generation failed - no headers returned');
+        }
+        
         currentData = {
             data: sampleData.data,
             headers: sampleData.headers,
             filename: sampleData.filename
         };
+        
+        console.log(`Sample data loaded: ${sampleData.data.length} rows, ${sampleData.headers.length} columns`);
         
         hideLoading();
         displayDataPreview();
@@ -543,6 +565,8 @@ json.dumps(result)
         const result = pyodide.runPython(pythonCode);
         analysisResults = JSON.parse(result);
         
+        console.log('Analysis completed:', analysisType, analysisResults);
+        
         hideLoading();
         displayResults(analysisType, analysisResults);
         
@@ -563,49 +587,192 @@ function displayResults(analysisType, results) {
     const statsContainer = document.getElementById('statsContainer');
     const interpretationContainer = document.getElementById('interpretationContainer');
     
+    // Validate results first
+    if (!results) {
+        showAnalysisError('No results received', 'The analysis did not return any data. Please try again.');
+        return;
+    }
+    
+    if (results.success === false || results.error) {
+        showAnalysisError('Analysis Failed', results.error || 'Unknown error occurred during analysis');
+        return;
+    }
+    
     analysisTitle.textContent = getAnalysisTitle(analysisType) + ' Results';
     
-    // Display chart
+    // Clear previous content
+    chartContainer.innerHTML = '';
+    statsContainer.innerHTML = '';
+    interpretationContainer.innerHTML = '';
+    
+    // Display chart with better error handling
     if (results.chart_data) {
-        const chartData = JSON.parse(results.chart_data);
-        
-        // Check if Plotly is loaded
-        if (typeof Plotly !== 'undefined') {
-            Plotly.newPlot(chartContainer, chartData.data, chartData.layout, {
-                responsive: true,
-                displayModeBar: true,
-                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
-                displaylogo: false
-            });
-        } else {
-            // Fallback: Show chart data as text or wait for Plotly to load
-            console.error('Plotly not loaded yet, attempting to wait...');
-            waitForPlotly().then(() => {
-                Plotly.newPlot(chartContainer, chartData.data, chartData.layout, {
-                    responsive: true,
-                    displayModeBar: true,
-                    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
-                    displaylogo: false
-                });
-            }).catch(error => {
-                console.error('Failed to load Plotly:', error);
-                chartContainer.innerHTML = '<div class="error-message">Chart visualization failed to load. Check your internet connection.</div>';
-            });
+        try {
+            displayChart(results.chart_data, chartContainer);
+        } catch (error) {
+            console.error('Chart display error:', error);
+            showChartError(chartContainer, 'Failed to display chart: ' + error.message);
         }
+    } else {
+        showChartError(chartContainer, 'No chart data available for this analysis');
     }
     
-    // Display statistics
-    if (results.statistics) {
+    // Display statistics with validation
+    if (results.statistics && Object.keys(results.statistics).length > 0) {
         displayStatistics(results.statistics);
+    } else {
+        statsContainer.innerHTML = '<div class="empty-state">📊 No statistical data available</div>';
     }
     
-    // Display interpretation
-    if (results.interpretation) {
+    // Display interpretation with validation
+    if (results.interpretation && results.interpretation.trim()) {
         displayInterpretation(results.interpretation);
+    } else {
+        interpretationContainer.innerHTML = '<div class="empty-state">🎯 No interpretation available</div>';
     }
     
     resultsSection.style.display = 'block';
     resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * Display chart with proper error handling
+ */
+function displayChart(chartDataString, container) {
+    if (!chartDataString) {
+        throw new Error('No chart data provided');
+    }
+    
+    let chartData;
+    try {
+        chartData = JSON.parse(chartDataString);
+    } catch (error) {
+        throw new Error('Invalid chart data format');
+    }
+    
+    if (!chartData.data || !Array.isArray(chartData.data)) {
+        throw new Error('Chart data is missing or invalid');
+    }
+    
+    const plotlyConfig = {
+        responsive: true,
+        displayModeBar: true,
+        modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+        displaylogo: false,
+        toImageButtonOptions: {
+            format: 'png',
+            width: 1200,
+            height: 800,
+            filename: `estiem_eda_chart_${new Date().getTime()}`
+        }
+    };
+    
+    // Check if Plotly is loaded
+    if (typeof Plotly !== 'undefined') {
+        return Plotly.newPlot(container, chartData.data, chartData.layout, plotlyConfig)
+            .catch(error => {
+                console.error('Plotly rendering error:', error);
+                throw new Error('Failed to render chart: ' + error.message);
+            });
+    } else {
+        // Wait for Plotly to load
+        console.warn('Plotly not loaded yet, waiting...');
+        showChartLoading(container);
+        
+        return waitForPlotly(15000).then(() => {
+            hideChartLoading(container);
+            return Plotly.newPlot(container, chartData.data, chartData.layout, plotlyConfig);
+        }).catch(error => {
+            hideChartLoading(container);
+            console.error('Failed to load Plotly:', error);
+            throw new Error('Chart library failed to load. Please refresh the page.');
+        });
+    }
+}
+
+/**
+ * Show chart loading state
+ */
+function showChartLoading(container) {
+    container.innerHTML = `
+        <div class="chart-loading">
+            <div class="spinner"></div>
+            <p>Loading chart visualization...</p>
+        </div>
+    `;
+}
+
+/**
+ * Hide chart loading state
+ */
+function hideChartLoading(container) {
+    const loading = container.querySelector('.chart-loading');
+    if (loading) {
+        loading.remove();
+    }
+}
+
+/**
+ * Show chart error state
+ */
+function showChartError(container, message) {
+    container.innerHTML = `
+        <div class="chart-error">
+            <div class="error-icon">📊</div>
+            <h4>Chart Unavailable</h4>
+            <p>${escapeHtml(message)}</p>
+            <button class="btn-small retry-btn" onclick="location.reload()">
+                🔄 Refresh Page
+            </button>
+        </div>
+    `;
+}
+
+/**
+ * Show analysis error modal
+ */
+function showAnalysisError(title, message) {
+    hideLoading();
+    
+    // Create error modal
+    const errorModal = document.createElement('div');
+    errorModal.className = 'error-modal';
+    errorModal.innerHTML = `
+        <div class="error-modal-content">
+            <div class="error-modal-header">
+                <h3>⚠️ ${escapeHtml(title)}</h3>
+                <button class="modal-close" onclick="closeErrorModal()">&times;</button>
+            </div>
+            <div class="error-modal-body">
+                <p>${escapeHtml(message)}</p>
+                <div class="error-suggestions">
+                    <h4>Suggestions:</h4>
+                    <ul>
+                        <li>Check that your data has sufficient rows (minimum 10 for most analyses)</li>
+                        <li>Ensure numeric columns contain valid numbers</li>
+                        <li>Verify that required parameters are provided</li>
+                        <li>Try refreshing the page if the issue persists</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="error-modal-footer">
+                <button class="btn-secondary" onclick="closeErrorModal()">Close</button>
+                <button class="btn-primary" onclick="location.reload()">Refresh Page</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(errorModal);
+}
+
+/**
+ * Close error modal
+ */
+function closeErrorModal() {
+    const modal = document.querySelector('.error-modal');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 /**
@@ -830,8 +997,7 @@ function updateProgress(percent) {
 }
 
 function showError(title, message) {
-    hideLoading();
-    alert(`${title}\n\n${message}`); // TODO: Replace with nicer modal
+    showAnalysisError(title, message);
 }
 
 function showSuccess(message) {
