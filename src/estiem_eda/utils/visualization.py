@@ -506,7 +506,7 @@ def create_pareto_chart(categories: List[str],
             marker_line_color='white',
             marker_line_width=1,
             hovertemplate='<b>%{x}</b><br>' +
-                         f'{unit}: %{y}<br>' +
+                         f'{unit}: %{{y}}<br>' +
                          'Percentage: %{customdata:.1f}%<br>' +
                          '<extra></extra>',
             customdata=[v/sum(values)*100 for v in values]
