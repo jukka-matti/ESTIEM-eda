@@ -22,8 +22,8 @@ class ESTIEMMCPServer:
         self.protocol_version = "2025-06-18"
         self.server_info = {
             "name": "estiem-eda",
-            "version": "2.0.0",
-            "description": "Enhanced Statistical Process Control tools with multi-format visualization"
+            "version": "2.1.0",
+            "description": "Statistical Process Control tools with reliable HTML visualization"
         }
         self.setup_logging()
         self.initialize_tools()
@@ -194,41 +194,38 @@ class ESTIEMMCPServer:
         return {"tools": tools_list}
     
     def handle_call_tool(self, params: Dict) -> Dict:
-        """Execute a tool and return enhanced multi-format results.
+        """Execute a tool and return simplified HTML visualization results.
         
         Args:
             params: Tool execution parameters including tool name and arguments.
             
         Returns:
-            Enhanced tool execution results or error response.
+            Simplified tool execution results or error response.
         """
         tool_name = params.get("name")
         arguments = params.get("arguments", {})
         
-        self.logger.info(f"Executing enhanced tool: {tool_name}")
+        self.logger.info(f"Executing tool: {tool_name}")
         
         if tool_name not in self.tools:
             return self.error_response(-32602, f"Unknown tool: {tool_name}")
         
         try:
-            # Extract client information for capability detection
-            client_info = {
-                "name": "claude-desktop",  # Default assumption, can be enhanced
-                "version": "1.0.0"
-            }
+            # Execute tool - gets statistical results
+            result = self.tools[tool_name].execute(arguments)
+            self.logger.debug(f"Tool {tool_name} executed successfully")
             
-            # Execute tool with client information for enhanced response
-            result = self.tools[tool_name].execute(arguments, client_info)
-            self.logger.debug(f"Enhanced tool {tool_name} executed successfully")
+            # Create simplified visualization response
+            from .utils.simplified_visualization import SimplifiedVisualizationResponse
+            response_generator = SimplifiedVisualizationResponse(result, tool_name)
+            enhanced_result = response_generator.generate_response()
             
-            # Check if this is an enhanced multi-format response
-            if isinstance(result, dict) and "visualization_formats" in result:
-                self.logger.info(f"Generated multi-format response with {len(result.get('visualization_formats', {}))} formats")
+            self.logger.info(f"Generated simplified response with HTML visualization")
             
             return {
                 "content": [{
                     "type": "text",
-                    "text": json.dumps(result, indent=2)
+                    "text": json.dumps(enhanced_result, indent=2)
                 }]
             }
         except ValueError as e:

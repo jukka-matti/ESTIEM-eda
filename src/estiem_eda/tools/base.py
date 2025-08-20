@@ -77,3 +77,7 @@ class BaseTool(ABC):
             [float(x) for x in data]
         except (ValueError, TypeError):
             raise ValueError("Data array must contain only numeric values")
+
+
+# Alias for MCP compatibility
+BaseMCPTool = BaseTool
