@@ -146,19 +146,30 @@ def run_analysis(analysis_type, data, headers, parameters):
         if isinstance(data, str):
             data = json.loads(data)
         
-        # Handle different data formats
+        # Handle different data formats with safer DataFrame creation
         if isinstance(data, dict) and 'data' in data:
-            df = pd.DataFrame(data['data'])
+            # Use records format for better compatibility
+            df = pd.DataFrame.from_records(data['data'])
         elif isinstance(data, list) and len(data) > 0:
             if isinstance(data[0], dict):
-                df = pd.DataFrame(data)
+                # Use records format for list of dictionaries
+                df = pd.DataFrame.from_records(data)
             else:
-                # Simple list of values
-                df = pd.DataFrame({'values': data})
+                # Simple list of values - create with explicit index
+                df = pd.DataFrame({'values': data}, index=range(len(data)))
         else:
-            df = pd.DataFrame(data)
+            # Fallback - try direct creation with index
+            if hasattr(data, '__len__') and len(data) > 0:
+                df = pd.DataFrame(data, index=range(len(data)))
+            else:
+                df = pd.DataFrame(data)
             
     except Exception as e:
+        # More detailed error reporting
+        print(f"DataFrame creation error: {str(e)}")
+        print(f"Data type: {type(data)}")
+        if hasattr(data, '__len__'):
+            print(f"Data length: {len(data)}")
         raise ValueError(f"Error creating DataFrame: {str(e)}")
     
     if analysis_type == 'i_chart':
@@ -183,11 +194,18 @@ def create_i_chart(df, headers, parameters):
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) == 0:
             raise ValueError('No numeric columns found for I-Chart analysis')
+            
+        measurement_col = numeric_cols[0]
+        # Use safer approach to get values
+        values = df[measurement_col].dropna()
+        if hasattr(values, 'values'):
+            values = values.values
+        else:
+            values = np.array(values)
+            
     except Exception as e:
+        print(f"I-Chart processing error: {str(e)}")
         raise ValueError(f'Error processing DataFrame: {str(e)}')
-    
-    measurement_col = numeric_cols[0]
-    values = df[measurement_col].dropna().values
     
     if len(values) < 3:
         raise ValueError('Need at least 3 data points for I-Chart')

@@ -31,7 +31,8 @@ async function initializeApp() {
         
         // Install required packages
         showLoading('Installing Packages...', 'Loading NumPy, SciPy, Pandas');
-        await pyodide.loadPackage(['numpy', 'pandas', 'scipy']);
+        await pyodide.loadPackage(['numpy', 'scipy']);
+        await pyodide.loadPackage(['pandas']);
         updateProgress(60);
         
         // Load our statistical tools
