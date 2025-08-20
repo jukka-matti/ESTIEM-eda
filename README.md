@@ -196,14 +196,14 @@ Cross-Origin-Embedder-Policy: require-corp
 - **Error Handling** - Graceful validation and meaningful error messages
 - **Professional Output** - Publication-ready charts and reports
 
-## 📈 For Lean Six Sigma Students
+## 📈 For Statistical Process Control
 
-Perfect for DMAIC methodology:
-- **Define**: Pareto analysis to identify vital problems
-- **Measure**: I-charts for baseline process monitoring  
-- **Analyze**: ANOVA to compare process conditions
-- **Improve**: Capability analysis to verify improvements
-- **Control**: Ongoing SPC with control charts
+Professional quality analysis workflow:
+- **Problem Identification**: Pareto analysis to identify key issues
+- **Process Monitoring**: I-charts for statistical control  
+- **Group Comparison**: ANOVA to analyze differences
+- **Performance Assessment**: Capability analysis for specifications
+- **Continuous Monitoring**: Statistical process control
 
 ## 🎓 Educational Focus
 

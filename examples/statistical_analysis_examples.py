@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-ESTIEM EDA Toolkit - Six Sigma Examples
-Complete examples for Lean Six Sigma DMAIC methodology
+ESTIEM EDA Toolkit - Statistical Analysis Examples
+Examples demonstrating professional statistical analysis tools
 """
 
 import sys
@@ -16,10 +16,10 @@ from estiem_eda.tools.capability import CapabilityTool
 from estiem_eda.tools.anova import ANOVATool
 from estiem_eda.tools.pareto import ParetoTool
 
-def dmaic_example():
-    """Complete DMAIC methodology example using ESTIEM EDA tools."""
-    print("ESTIEM EDA Toolkit - Six Sigma DMAIC Example")
-    print("=" * 50)
+def manufacturing_analysis_example():
+    """Complete manufacturing analysis example using ESTIEM EDA tools."""
+    print("ESTIEM EDA Toolkit - Manufacturing Analysis Example")
+    print("=" * 55)
     
     # Load sample manufacturing data using built-in CSV
     data_file = Path(__file__).parent / "manufacturing_data.csv"
@@ -62,9 +62,9 @@ def dmaic_example():
             "Other": 8
         }
     
-    # DEFINE Phase: Identify key problems with Pareto Analysis
-    print("\n🎯 DEFINE Phase - Pareto Analysis")
-    print("-" * 30)
+    # 1. Problem Identification with Pareto Analysis
+    print("\n[1] Pareto Analysis - Problem Identification")
+    print("-" * 40)
     
     pareto_tool = ParetoTool()
     pareto_result = pareto_tool.execute({
@@ -74,19 +74,20 @@ def dmaic_example():
     
     if pareto_result['success']:
         vital_few = pareto_result['vital_few']
-        print(f"Vital Few Problems: {vital_few['count']} categories")
-        print(f"Impact: {vital_few['contribution_percent']:.1f}% of defects")
+        print(f"Key Problem Categories: {vital_few['count']}")
+        print(f"Total Impact: {vital_few['percentage']:.1f}% of defects")
+        print(f"Categories: {', '.join(vital_few['categories'])}")
     else:
         print("Pareto analysis failed")
     
-    # MEASURE Phase: Baseline process with I-Chart
-    print("\n📏 MEASURE Phase - Process Baseline")
-    print("-" * 30)
+    # 2. Process Control with I-Chart
+    print("\n[2] I-Chart Analysis - Process Control")
+    print("-" * 40)
     
     ichart_tool = IChartTool()
     ichart_result = ichart_tool.execute({
         "data": measurements,
-        "title": "Manufacturing Process - Baseline Control Chart"
+        "title": "Manufacturing Process Control Chart"
     })
     
     if ichart_result['success']:
@@ -94,13 +95,13 @@ def dmaic_example():
         print(f"Process Mean: {baseline_stats['mean']:.3f}")
         print(f"Process Sigma: {baseline_stats.get('sigma_hat', 0):.3f}")
         print(f"Out of Control Points: {baseline_stats.get('out_of_control_points', 0)}")
-        print(f"Control Status: {'In Control' if baseline_stats.get('out_of_control_points', 0) == 0 else 'Out of Control'}")
+        print(f"Control Status: {'Stable' if baseline_stats.get('out_of_control_points', 0) == 0 else 'Unstable'}")
     else:
         print("I-Chart analysis failed")
     
-    # ANALYZE Phase: Compare production lines with ANOVA
-    print("\n🔍 ANALYZE Phase - Group Comparison")
-    print("-" * 30)
+    # 3. Group Comparison with ANOVA
+    print("\n[3] ANOVA Analysis - Group Comparison")
+    print("-" * 40)
     
     # Create synthetic group data for demonstration
     groups = {
@@ -126,9 +127,9 @@ def dmaic_example():
     else:
         print("ANOVA analysis failed")
     
-    # IMPROVE Phase: Process capability after improvements
-    print("\n🚀 IMPROVE Phase - Capability Analysis")
-    print("-" * 30)
+    # 4. Process Capability Analysis
+    print("\n[4] Capability Analysis - Performance Assessment")
+    print("-" * 50)
     
     # Use best performing line from ANOVA (Line_A)
     best_line_data = groups["Line_A"]
@@ -153,42 +154,42 @@ def dmaic_example():
         
         cpk_value = indices.get('cpk', 0)
         
-        # CONTROL Phase: Recommendations
-        print("\n🎛️  CONTROL Phase - Recommendations")
-        print("-" * 30)
+        # Performance Assessment
+        print("\n[5] Performance Assessment")
+        print("-" * 25)
         
         if cpk_value >= 1.33:
-            print("✅ Process is capable - implement control charts")
-            print("✅ Monitor with I-charts and capability studies")
-            print("✅ Focus on maintaining current performance")
+            print("PASS: Process is capable")
+            print("PASS: Ready for production")
+            print("PASS: Monitor with control charts")
         else:
-            print("⚠️  Process needs further improvement")
-            print("📋 Actions: Reduce variation, improve centering")
-            print("📊 Continue monitoring with statistical tools")
+            print("WARN: Process needs improvement")
+            print("TODO: Reduce variation and improve centering")
+            print("TODO: Continue statistical monitoring")
         
         # Summary
-        print(f"\n📊 DMAIC SUMMARY")
+        print(f"\nANALYSIS SUMMARY")
         print("=" * 50)
         
         if pareto_result.get('success') and 'vital_few' in pareto_result:
-            print(f"Define: Identified {pareto_result['vital_few']['count']} key defect types")
+            print(f"Problem Analysis: {pareto_result['vital_few']['count']} key categories identified")
         else:
-            print("Define: Defect analysis completed")
+            print("Problem Analysis: Defect review completed")
             
         if ichart_result.get('success'):
             process_mean = ichart_result['statistics']['mean']
-            print(f"Measure: Process mean = {process_mean:.3f}")
+            print(f"Process Control: Mean = {process_mean:.3f}")
         else:
-            print("Measure: Process baseline established")
+            print("Process Control: Baseline established")
             
         if anova_result.get('success'):
             significant = anova_result['anova_results']['significant']
-            print(f"Analyze: {'Significant' if significant else 'No'} line differences found")
+            print(f"Group Comparison: {'Significant' if significant else 'No'} differences found")
         else:
-            print("Analyze: Group comparison completed")
+            print("Group Comparison: Analysis completed")
             
-        print(f"Improve: Achieved Cpk = {cpk_value:.3f}")
-        print(f"Control: {'Ready for production' if cpk_value >= 1.33 else 'Needs more work'}")
+        print(f"Process Capability: Cpk = {cpk_value:.3f}")
+        print(f"Status: {'Production Ready' if cpk_value >= 1.33 else 'Needs Improvement'}")
     else:
         print("Capability analysis failed")
     
@@ -196,7 +197,7 @@ def dmaic_example():
 
 def individual_tool_examples():
     """Examples of using individual tools."""
-    print("\n🛠️  Individual Tool Examples")
+    print("\nIndividual Tool Examples")
     print("=" * 30)
     
     # I-Chart Example
@@ -250,15 +251,17 @@ def individual_tool_examples():
 
 if __name__ == "__main__":
     try:
-        # Run DMAIC example
-        dmaic_example()
+        # Run manufacturing analysis example
+        manufacturing_analysis_example()
         
         # Run individual tool examples
         individual_tool_examples()
         
-        print(f"\n🎉 Examples completed successfully!")
-        print("Ready to use ESTIEM EDA Toolkit for Six Sigma projects!")
+        print(f"\nExamples completed successfully!")
+        print("Ready to use ESTIEM EDA Toolkit for statistical analysis!")
         
     except Exception as e:
-        print(f"❌ Example failed: {e}")
+        print(f"ERROR: Example failed: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)

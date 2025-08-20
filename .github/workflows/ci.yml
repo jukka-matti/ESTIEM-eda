@@ -134,5 +134,5 @@ jobs:
     - name: Validate examples
       run: |
         cd examples
-        python six_sigma_examples.py
+        python statistical_analysis_examples.py
         echo "Examples validated successfully"
