@@ -1,49 +1,65 @@
 #!/usr/bin/env python3
 """
 ESTIEM EDA Toolkit - Command Line Interface
-Professional statistical analysis from the command line
+Exploratory Data Analysis from the command line
 """
 
 import click
-import pandas as pd
 import numpy as np
 import sys
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 import json
+import csv
+from datetime import datetime
 
-from .tools.i_chart import IChartTool
-from .tools.capability import CapabilityTool
-from .tools.anova import ANOVATool
-from .tools.pareto import ParetoTool
-from .tools.probability_plot import ProbabilityPlotTool
+from .core.calculations import (
+    calculate_i_chart,
+    calculate_process_capability,
+    calculate_anova,
+    calculate_pareto,
+    calculate_probability_plot
+)
+from .core.validation import (
+    validate_numeric_data,
+    validate_groups_data,
+    validate_pareto_data
+)
 
 
 class EstiemCLI:
     """ESTIEM EDA command line interface"""
     
     def __init__(self):
-        self.tools = {
-            'i-chart': IChartTool(),
-            'capability': CapabilityTool(),
-            'anova': ANOVATool(),
-            'pareto': ParetoTool(),
-            'probability': ProbabilityPlotTool()
-        }
+        pass
     
-    def load_data(self, file_path: str) -> pd.DataFrame:
+    def load_data(self, file_path: str) -> Dict[str, Any]:
         """Load data from CSV file"""
         try:
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}")
             
-            df = pd.read_csv(file_path)
-            if df.empty:
+            data = []
+            with open(file_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                headers = reader.fieldnames
+                for row in reader:
+                    # Convert numeric values
+                    converted_row = {}
+                    for key, value in row.items():
+                        try:
+                            converted_row[key] = float(value)
+                        except (ValueError, TypeError):
+                            converted_row[key] = value
+                    data.append(converted_row)
+            
+            if not data:
                 raise ValueError("CSV file is empty")
             
-            click.echo(f"✅ Loaded {len(df)} rows × {len(df.columns)} columns from {file_path}")
-            return df
+            result = {'data': data, 'headers': headers}
+            click.echo(f"✅ Loaded {len(data)} rows × {len(headers)} columns from {file_path}")
+            return result
         
         except Exception as e:
             click.echo(f"❌ Error loading data: {e}", err=True)
@@ -169,7 +185,7 @@ class EstiemCLI:
         <div class="header">
             <h1>📊 {title} Analysis</h1>
             <div class="estiem-badge">ESTIEM EDA Toolkit</div>
-            <p>Generated on {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         </div>
         
         <div class="chart-container">
@@ -237,7 +253,7 @@ class EstiemCLI:
 ESTIEM EDA TOOLKIT - {title.upper()} ANALYSIS
 {'=' * 60}
 
-Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 Tool: ESTIEM EDA CLI
 
 STATISTICAL SUMMARY:
@@ -277,8 +293,8 @@ def main(ctx, version):
     """
     🏭 ESTIEM EDA Toolkit - Exploratory Data Analysis CLI
     
-    Perform statistical process control analysis from the command line.
-    Perfect for Lean Six Sigma, quality control, and process improvement.
+    Perform exploratory data analysis from the command line.
+    Perfect for Industrial Engineering applications, quality control, and process improvement.
     
     Examples:
       estiem-eda i-chart data.csv
@@ -310,38 +326,43 @@ def i_chart(data_file, column, output, format, title):
     click.echo("=" * 50)
     
     # Load data
-    df = cli.load_data(data_file)
+    dataset = cli.load_data(data_file)
     
-    # Prepare parameters
-    data_list = df[column].tolist() if column else df.select_dtypes(include=[np.number]).iloc[:, 0].tolist()
-    
-    try:
-        # Run analysis
-        tool = cli.tools['i-chart']
-        results = tool.execute({
-            'data': data_list,
-            'title': title or f'I-Chart Analysis: {data_file}'
-        })
-        
-        if results['success']:
-            # Display summary
-            stats = results['statistics']
-            click.echo(f"\n📊 Results Summary:")
-            click.echo(f"   Sample Size: {stats['sample_size']}")
-            click.echo(f"   Process Mean: {stats['mean']:.4f}")
-            click.echo(f"   UCL: {stats['ucl']:.4f}")
-            click.echo(f"   LCL: {stats['lcl']:.4f}")
-            click.echo(f"   Out of Control: {stats['out_of_control_points']} points")
-            
-            click.echo(f"\n🎯 {results['interpretation']}")
-            
-            # Save results
-            cli.save_results(results, output, format)
-            
+    # Get numeric data
+    if column:
+        # Extract specific column
+        data_values = [row[column] for row in dataset['data'] if isinstance(row.get(column), (int, float))]
+    else:
+        # Find first numeric column
+        for header in dataset['headers']:
+            data_values = [row[header] for row in dataset['data'] if isinstance(row.get(header), (int, float))]
+            if len(data_values) >= 3:
+                column = header
+                click.echo(f"🔍 Using column: {column}")
+                break
         else:
-            click.echo(f"❌ Analysis failed: {results.get('error')}", err=True)
+            click.echo("❌ No suitable numeric column found", err=True)
             sys.exit(1)
     
+    try:
+        # Validate and run analysis
+        values = validate_numeric_data(data_values, min_points=3)
+        results = calculate_i_chart(values, title or f'I-Chart Analysis: {data_file}')
+        
+        # Display summary
+        stats = results['statistics']
+        click.echo(f"\n📊 Results Summary:")
+        click.echo(f"   Sample Size: {stats['sample_size']}")
+        click.echo(f"   Process Mean: {stats['mean']:.4f}")
+        click.echo(f"   UCL: {stats['ucl']:.4f}")
+        click.echo(f"   LCL: {stats['lcl']:.4f}")
+        click.echo(f"   Out of Control: {stats['out_of_control_points']} points")
+        
+        click.echo(f"\n🎯 {results['interpretation']}")
+        
+        # Save results
+        cli.save_results(results, output, format)
+            
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         sys.exit(1)
@@ -362,43 +383,44 @@ def capability(data_file, lsl, usl, target, column, output, format):
     click.echo("=" * 50)
     
     # Load data
-    df = cli.load_data(data_file)
+    dataset = cli.load_data(data_file)
     
-    # Prepare parameters
-    data_list = df[column].tolist() if column else df.select_dtypes(include=[np.number]).iloc[:, 0].tolist()
-    
-    params = {'lsl': lsl, 'usl': usl}
-    if target:
-        params['target'] = target
-    
-    try:
-        # Run analysis
-        tool = cli.tools['capability']
-        results = tool.execute({
-            'data': data_list,
-            **params
-        })
-        
-        if results['success']:
-            # Display summary
-            stats = results['capability_indices']
-            click.echo(f"\n📊 Capability Results:")
-            click.echo(f"   Cp:  {stats['cp']:.4f}")
-            click.echo(f"   Cpk: {stats['cpk']:.4f}")
-            
-            defects = results['defect_analysis']
-            click.echo(f"   Expected Defects: {defects['ppm_total']:.0f} PPM")
-            click.echo(f"   Sigma Level: {defects['sigma_level']:.1f}")
-            
-            click.echo(f"\n🎯 {results['interpretation']}")
-            
-            # Save results
-            cli.save_results(results, output, format)
-            
+    # Get numeric data
+    if column:
+        # Extract specific column
+        data_values = [row[column] for row in dataset['data'] if isinstance(row.get(column), (int, float))]
+    else:
+        # Find first numeric column
+        for header in dataset['headers']:
+            data_values = [row[header] for row in dataset['data'] if isinstance(row.get(header), (int, float))]
+            if len(data_values) >= 10:
+                column = header
+                click.echo(f"🔍 Using column: {column}")
+                break
         else:
-            click.echo(f"❌ Analysis failed: {results.get('error')}", err=True)
+            click.echo("❌ No suitable numeric column found (need 10+ points)", err=True)
             sys.exit(1)
     
+    try:
+        # Validate and run analysis
+        values = validate_numeric_data(data_values, min_points=10)
+        results = calculate_process_capability(values, lsl, usl, target)
+        
+        # Display summary
+        stats = results['capability_indices']
+        click.echo(f"\n📊 Capability Results:")
+        click.echo(f"   Cp:  {stats['cp']:.4f}")
+        click.echo(f"   Cpk: {stats['cpk']:.4f}")
+        
+        defects = results['defect_analysis']
+        click.echo(f"   Expected Defects: {defects['ppm_total']:.0f} PPM")
+        click.echo(f"   Sigma Level: {defects['sigma_level']:.1f}")
+        
+        click.echo(f"\n🎯 {results['interpretation']}")
+        
+        # Save results
+        cli.save_results(results, output, format)
+        
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         sys.exit(1)
@@ -417,38 +439,44 @@ def anova(data_file, value, group, output, format):
     click.echo("=" * 50)
     
     # Load data
-    df = cli.load_data(data_file)
+    dataset = cli.load_data(data_file)
     
     # Prepare groups
-    groups = {}
-    for group_name in df[group].unique():
-        if pd.notna(group_name):
-            group_data = df[df[group] == group_name][value].dropna().tolist()
-            if len(group_data) >= 2:
-                groups[str(group_name)] = group_data
+    groups_dict = {}
+    for row in dataset['data']:
+        group_name = row.get(group)
+        value_data = row.get(value)
+        
+        if group_name is not None and isinstance(value_data, (int, float)):
+            group_key = str(group_name)
+            if group_key not in groups_dict:
+                groups_dict[group_key] = []
+            groups_dict[group_key].append(float(value_data))
+    
+    # Filter groups with sufficient data
+    groups = {name: data for name, data in groups_dict.items() if len(data) >= 2}
+    
+    if len(groups) < 2:
+        click.echo("❌ Need at least 2 groups with 2+ data points each", err=True)
+        sys.exit(1)
     
     try:
-        # Run analysis
-        tool = cli.tools['anova']
-        results = tool.execute({'groups': groups})
+        # Validate and run analysis
+        validated_groups = validate_groups_data(groups)
+        results = calculate_anova(validated_groups)
         
-        if results['success']:
-            # Display summary
-            stats = results['anova_results']
-            click.echo(f"\n📊 ANOVA Results:")
-            click.echo(f"   F-statistic: {stats['f_statistic']:.4f}")
-            click.echo(f"   p-value: {stats['p_value']:.6f}")
-            click.echo(f"   Significant: {'Yes' if stats['significant'] else 'No'}")
-            
-            click.echo(f"\n🎯 {results['interpretation']}")
-            
-            # Save results
-            cli.save_results(results, output, format)
-            
-        else:
-            click.echo(f"❌ Analysis failed: {results.get('error')}", err=True)
-            sys.exit(1)
-    
+        # Display summary
+        stats = results['anova_results']
+        click.echo(f"\n📊 ANOVA Results:")
+        click.echo(f"   F-statistic: {stats['f_statistic']:.4f}")
+        click.echo(f"   p-value: {stats['p_value']:.6f}")
+        click.echo(f"   Significant: {'Yes' if stats['significant'] else 'No'}")
+        
+        click.echo(f"\n🎯 {results['interpretation']}")
+        
+        # Save results
+        cli.save_results(results, output, format)
+        
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         sys.exit(1)
@@ -467,48 +495,60 @@ def pareto(data_file, category, value, output, format):
     click.echo("=" * 50)
     
     # Load data
-    df = cli.load_data(data_file)
+    dataset = cli.load_data(data_file)
     
-    # Auto-detect columns if not specified
+    # Auto-detect category column if not specified
     if not category:
-        text_cols = df.select_dtypes(include=['object', 'string']).columns
-        if len(text_cols) == 0:
+        # Find first string/categorical column
+        for header in dataset['headers']:
+            sample_values = [row.get(header) for row in dataset['data'][:10] if row.get(header) is not None]
+            if sample_values and any(isinstance(val, str) for val in sample_values):
+                category = header
+                click.echo(f"🔍 Using category column: {category}")
+                break
+        else:
             click.echo("❌ No categorical columns found", err=True)
             sys.exit(1)
-        category = text_cols[0]
-        click.echo(f"🔍 Using category column: {category}")
     
     # Prepare data
+    data_dict = {}
     if value:
         # Sum values by category
-        data_dict = df.groupby(category)[value].sum().to_dict()
+        for row in dataset['data']:
+            cat = row.get(category)
+            val = row.get(value)
+            if cat is not None and isinstance(val, (int, float)):
+                cat_str = str(cat)
+                data_dict[cat_str] = data_dict.get(cat_str, 0) + float(val)
     else:
         # Count occurrences
-        data_dict = df[category].value_counts().to_dict()
+        for row in dataset['data']:
+            cat = row.get(category)
+            if cat is not None:
+                cat_str = str(cat)
+                data_dict[cat_str] = data_dict.get(cat_str, 0) + 1
     
     try:
-        # Run analysis
-        tool = cli.tools['pareto']
-        results = tool.execute({'data': data_dict})
+        # Validate and run analysis
+        validated_data = validate_pareto_data(data_dict)
+        results = calculate_pareto(validated_data)
         
-        if results['success']:
-            # Display summary
-            stats = results['vital_few']
-            click.echo(f"\n📊 Pareto Results:")
-            click.echo(f"   Total Categories: {len(data_dict)}")
-            click.echo(f"   Vital Few: {len(stats['categories'])} categories")
-            click.echo(f"   Impact: {stats['percentage']:.1f}% of total")
-            click.echo(f"   Top 3: {', '.join(list(data_dict.keys())[:3])}")
-            
-            click.echo(f"\n🎯 {results['interpretation']}")
-            
-            # Save results
-            cli.save_results(results, output, format)
-            
-        else:
-            click.echo(f"❌ Analysis failed: {results.get('error')}", err=True)
-            sys.exit(1)
-    
+        # Display summary
+        stats = results['vital_few']
+        click.echo(f"\n📊 Pareto Results:")
+        click.echo(f"   Total Categories: {len(data_dict)}")
+        click.echo(f"   Vital Few: {len(stats['categories'])} categories")
+        click.echo(f"   Impact: {stats['percentage']:.1f}% of total")
+        
+        sorted_categories = sorted(data_dict.items(), key=lambda x: x[1], reverse=True)
+        top_3 = [cat for cat, _ in sorted_categories[:3]]
+        click.echo(f"   Top 3: {', '.join(top_3)}")
+        
+        click.echo(f"\n🎯 {results['interpretation']}")
+        
+        # Save results
+        cli.save_results(results, output, format)
+        
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         sys.exit(1)
@@ -527,39 +567,44 @@ def probability(data_file, column, distribution, output, format):
     click.echo("=" * 50)
     
     # Load data
-    df = cli.load_data(data_file)
+    dataset = cli.load_data(data_file)
     
-    # Prepare parameters
-    data_list = df[column].tolist() if column else df.select_dtypes(include=[np.number]).iloc[:, 0].tolist()
-    
-    try:
-        # Run analysis
-        tool = cli.tools['probability']
-        results = tool.execute({
-            'data': data_list,
-            'distribution': distribution
-        })
-        
-        if results['success']:
-            # Display summary
-            stats = results['goodness_of_fit']
-            click.echo(f"\n📊 Probability Plot Results:")
-            click.echo(f"   Distribution: {distribution.title()}")
-            click.echo(f"   Correlation: {stats['correlation_coefficient']:.4f}")
-            click.echo(f"   Fit Quality: {stats['interpretation']}")
-            
-            outliers = results['outliers']
-            click.echo(f"   Outliers: {outliers['count']} detected")
-            
-            click.echo(f"\n🎯 {results['interpretation']}")
-            
-            # Save results
-            cli.save_results(results, output, format)
-            
+    # Get numeric data
+    if column:
+        # Extract specific column
+        data_values = [row[column] for row in dataset['data'] if isinstance(row.get(column), (int, float))]
+    else:
+        # Find first numeric column
+        for header in dataset['headers']:
+            data_values = [row[header] for row in dataset['data'] if isinstance(row.get(header), (int, float))]
+            if len(data_values) >= 3:
+                column = header
+                click.echo(f"🔍 Using column: {column}")
+                break
         else:
-            click.echo(f"❌ Analysis failed: {results.get('error')}", err=True)
+            click.echo("❌ No suitable numeric column found", err=True)
             sys.exit(1)
     
+    try:
+        # Validate and run analysis
+        values = validate_numeric_data(data_values, min_points=3)
+        results = calculate_probability_plot(values, distribution)
+        
+        # Display summary
+        stats = results['goodness_of_fit']
+        click.echo(f"\n📊 Probability Plot Results:")
+        click.echo(f"   Distribution: {distribution.title()}")
+        click.echo(f"   Correlation: {stats['correlation_coefficient']:.4f}")
+        click.echo(f"   Fit Quality: {stats['interpretation']}")
+        
+        outliers = results['outliers']
+        click.echo(f"   Outliers: {outliers['count']} detected")
+        
+        click.echo(f"\n🎯 {results['interpretation']}")
+        
+        # Save results
+        cli.save_results(results, output, format)
+        
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         sys.exit(1)
@@ -626,16 +671,24 @@ def sample_data(sample_type, size, output):
                 })
         
         # Save to CSV
-        df = pd.DataFrame(data)
-        df.to_csv(output, index=False)
-        
-        click.echo(f"✅ Generated {len(data)} samples of {sample_type} data")
-        click.echo(f"💾 Saved to: {output}")
-        click.echo(f"📊 Columns: {', '.join(df.columns.tolist())}")
-        
-        # Show preview
-        click.echo(f"\n🔍 Data Preview:")
-        click.echo(df.head().to_string(index=False))
+        if data:
+            headers = list(data[0].keys())
+            with open(output, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(f, fieldnames=headers)
+                writer.writeheader()
+                writer.writerows(data)
+            
+            click.echo(f"✅ Generated {len(data)} samples of {sample_type} data")
+            click.echo(f"💾 Saved to: {output}")
+            click.echo(f"📊 Columns: {', '.join(headers)}")
+            
+            # Show preview
+            click.echo(f"\n🔍 Data Preview:")
+            for i, row in enumerate(data[:5]):
+                if i == 0:
+                    click.echo('  ' + '  '.join(f"{k:>12}" for k in headers))
+                    click.echo('  ' + '-' * (12 * len(headers) + 2 * (len(headers) - 1)))
+                click.echo('  ' + '  '.join(f"{str(v):>12}" for v in row.values()))
         
     except Exception as e:
         click.echo(f"❌ Error generating sample data: {e}", err=True)
@@ -663,7 +716,7 @@ def info():
    - Mobile-friendly design
 
 🎓 Educational Focus:
-   - Designed for Lean Six Sigma methodology (DMAIC)
+   - Designed for Industrial Engineering applications
    - Used by 60,000+ Industrial Engineering students
    - Professional-quality analysis results
    - ESTIEM branding for viral marketing

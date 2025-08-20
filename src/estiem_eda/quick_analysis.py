@@ -1,25 +1,32 @@
 #!/usr/bin/env python3
 """
 ESTIEM EDA Toolkit - Quick Analysis Module
-Streamlined interface for rapid statistical analysis
+Streamlined interface for rapid exploratory data analysis
 """
 
-import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional, Union, List
 import warnings
 from pathlib import Path
+import csv
 
-from .tools.i_chart import IChartTool
-from .tools.capability import CapabilityTool
-from .tools.anova import ANOVATool
-from .tools.pareto import ParetoTool
-from .tools.probability_plot import ProbabilityPlotTool
+from .core.calculations import (
+    calculate_i_chart,
+    calculate_process_capability,
+    calculate_anova,
+    calculate_pareto,
+    calculate_probability_plot
+)
+from .core.validation import (
+    validate_numeric_data,
+    validate_groups_data,
+    validate_pareto_data
+)
 
 
 class QuickEDA:
     """
-    Streamlined interface for ESTIEM EDA statistical analysis
+    Streamlined interface for ESTIEM EDA exploratory data analysis
     
     Examples:
         >>> from estiem_eda import QuickEDA
@@ -31,37 +38,62 @@ class QuickEDA:
     
     def __init__(self):
         self.data = None
-        self.tools = {
-            'i_chart': IChartTool(),
-            'capability': CapabilityTool(),
-            'anova': ANOVATool(),
-            'pareto': ParetoTool(),
-            'probability': ProbabilityPlotTool()
-        }
+        self.headers = []
     
     def load_csv(self, file_path: str) -> 'QuickEDA':
         """Load data from CSV file"""
         try:
-            self.data = pd.read_csv(file_path)
-            print(f"✅ Loaded {len(self.data)} rows × {len(self.data.columns)} columns")
-            print(f"📋 Columns: {', '.join(self.data.columns.tolist())}")
+            data = []
+            with open(file_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                self.headers = reader.fieldnames
+                for row in reader:
+                    # Convert numeric values
+                    converted_row = {}
+                    for key, value in row.items():
+                        try:
+                            converted_row[key] = float(value)
+                        except (ValueError, TypeError):
+                            converted_row[key] = value
+                    data.append(converted_row)
+            
+            self.data = data
+            print(f"✅ Loaded {len(self.data)} rows × {len(self.headers)} columns")
+            print(f"📋 Columns: {', '.join(self.headers)}")
             return self
         except Exception as e:
             print(f"❌ Error loading CSV: {e}")
             raise
     
-    def load_data(self, data: Union[pd.DataFrame, Dict, List]) -> 'QuickEDA':
-        """Load data from DataFrame, dictionary, or list"""
-        if isinstance(data, pd.DataFrame):
-            self.data = data
-        elif isinstance(data, dict):
-            self.data = pd.DataFrame(data)
+    def load_data(self, data: Union[Dict, List]) -> 'QuickEDA':
+        """Load data from dictionary or list"""
+        if isinstance(data, dict):
+            # Convert dict to list of records
+            if data and isinstance(list(data.values())[0], list):
+                # Dict of lists (columns)
+                self.headers = list(data.keys())
+                n_rows = len(list(data.values())[0])
+                self.data = []
+                for i in range(n_rows):
+                    row = {col: data[col][i] for col in self.headers}
+                    self.data.append(row)
+            else:
+                # Single record dict
+                self.headers = list(data.keys())
+                self.data = [data]
         elif isinstance(data, list):
-            self.data = pd.DataFrame({'values': data})
+            if data and isinstance(data[0], dict):
+                # List of records
+                self.data = data
+                self.headers = list(data[0].keys()) if data else []
+            else:
+                # Simple list
+                self.data = [{'values': val} for val in data]
+                self.headers = ['values']
         else:
-            raise ValueError("Data must be DataFrame, dict, or list")
+            raise ValueError("Data must be dict or list")
         
-        print(f"✅ Data loaded: {len(self.data)} rows × {len(self.data.columns)} columns")
+        print(f"✅ Data loaded: {len(self.data)} rows × {len(self.headers)} columns")
         return self
     
     def preview(self, n: int = 5) -> 'QuickEDA':
@@ -70,14 +102,31 @@ class QuickEDA:
             print("❌ No data loaded")
             return self
         
-        print(f"📊 Data Preview ({len(self.data)} rows × {len(self.data.columns)} columns):")
-        print(self.data.head(n))
+        print(f"📊 Data Preview ({len(self.data)} rows × {len(self.headers)} columns):")
+        
+        # Show first n rows
+        preview_data = self.data[:n]
+        if preview_data:
+            # Print header
+            print('  ' + '  '.join(f"{col:>12}" for col in self.headers))
+            print('  ' + '-' * (12 * len(self.headers) + 2 * (len(self.headers) - 1)))
+            
+            # Print rows
+            for row in preview_data:
+                print('  ' + '  '.join(f"{str(row.get(col, '')):>12}" for col in self.headers))
         
         # Show numeric columns summary
-        numeric_cols = self.data.select_dtypes(include=[np.number]).columns
-        if len(numeric_cols) > 0:
-            print(f"\n📈 Numeric columns: {', '.join(numeric_cols)}")
-            print(self.data[numeric_cols].describe())
+        numeric_cols = []
+        for col in self.headers:
+            values = [row.get(col) for row in self.data if isinstance(row.get(col), (int, float))]
+            if len(values) > 0:
+                numeric_cols.append(col)
+                print(f"\n📈 {col}: {len(values)} numeric values")
+                if len(values) > 1:
+                    mean_val = np.mean(values)
+                    std_val = np.std(values)
+                    print(f"   Mean: {mean_val:.3f}, Std: {std_val:.3f}")
+                    print(f"   Range: {min(values):.3f} - {max(values):.3f}")
         
         return self
     
@@ -88,18 +137,21 @@ class QuickEDA:
         
         # Auto-select column if not specified
         if column is None:
-            numeric_cols = self.data.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) == 0:
-                raise ValueError("No numeric columns found")
-            column = numeric_cols[0]
-            print(f"🔍 Using column: {column}")
+            for col in self.headers:
+                values = [row.get(col) for row in self.data if isinstance(row.get(col), (int, float))]
+                if len(values) >= 3:
+                    column = col
+                    print(f"🔍 Using column: {column}")
+                    break
+            else:
+                raise ValueError("No suitable numeric columns found (need 3+ points)")
         
-        data_values = self.data[column].dropna().tolist()
+        # Extract data values
+        data_values = [row.get(column) for row in self.data if isinstance(row.get(column), (int, float))]
         
-        results = self.tools['i_chart'].execute({
-            'data': data_values,
-            'title': title or f'I-Chart: {column}'
-        })
+        # Validate and calculate
+        values = validate_numeric_data(data_values, min_points=3)
+        results = calculate_i_chart(values, title or f'I-Chart: {column}')
         
         self._print_results(results, 'I-Chart')
         return results
@@ -115,19 +167,22 @@ class QuickEDA:
         
         # Auto-select column if not specified
         if column is None:
-            numeric_cols = self.data.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) == 0:
-                raise ValueError("No numeric columns found")
-            column = numeric_cols[0]
-            print(f"🔍 Using column: {column}")
+            for col in self.headers:
+                values = [row.get(col) for row in self.data if isinstance(row.get(col), (int, float))]
+                if len(values) >= 10:
+                    column = col
+                    print(f"🔍 Using column: {column}")
+                    break
+            else:
+                raise ValueError("No suitable numeric columns found (need 10+ points)")
         
-        data_values = self.data[column].dropna().tolist()
+        # Extract data values
+        data_values = [row.get(column) for row in self.data if isinstance(row.get(column), (int, float))]
         
-        params = {'data': data_values, 'lsl': lsl, 'usl': usl}
-        if target is not None:
-            params['target'] = target
+        # Validate and calculate
+        values = validate_numeric_data(data_values, min_points=10)
+        results = calculate_process_capability(values, lsl, usl, target)
         
-        results = self.tools['capability'].execute(params)
         self._print_results(results, 'Process Capability')
         return results
     
@@ -136,23 +191,33 @@ class QuickEDA:
         if self.data is None:
             raise ValueError("No data loaded. Use load_csv() or load_data() first.")
         
-        if value_column not in self.data.columns:
+        if value_column not in self.headers:
             raise ValueError(f"Value column '{value_column}' not found")
-        if group_column not in self.data.columns:
+        if group_column not in self.headers:
             raise ValueError(f"Group column '{group_column}' not found")
         
         # Prepare groups
-        groups = {}
-        for group_name in self.data[group_column].unique():
-            if pd.notna(group_name):
-                group_data = self.data[self.data[group_column] == group_name][value_column].dropna().tolist()
-                if len(group_data) >= 2:
-                    groups[str(group_name)] = group_data
+        groups_dict = {}
+        for row in self.data:
+            group_name = row.get(group_column)
+            value_data = row.get(value_column)
+            
+            if group_name is not None and isinstance(value_data, (int, float)):
+                group_key = str(group_name)
+                if group_key not in groups_dict:
+                    groups_dict[group_key] = []
+                groups_dict[group_key].append(float(value_data))
+        
+        # Filter groups with sufficient data
+        groups = {name: data for name, data in groups_dict.items() if len(data) >= 2}
         
         if len(groups) < 2:
             raise ValueError("Need at least 2 groups with 2+ data points each")
         
-        results = self.tools['anova'].execute({'groups': groups})
+        # Validate and calculate
+        validated_groups = validate_groups_data(groups)
+        results = calculate_anova(validated_groups)
+        
         self._print_results(results, 'ANOVA')
         return results
     
@@ -163,21 +228,39 @@ class QuickEDA:
         
         # Auto-detect category column
         if category_column is None:
-            text_cols = self.data.select_dtypes(include=['object', 'string']).columns
-            if len(text_cols) == 0:
+            for col in self.headers:
+                sample_values = [row.get(col) for row in self.data[:10] if row.get(col) is not None]
+                if sample_values and any(isinstance(val, str) for val in sample_values):
+                    category_column = col
+                    print(f"🔍 Using category column: {category_column}")
+                    break
+            else:
                 raise ValueError("No categorical columns found")
-            category_column = text_cols[0]
-            print(f"🔍 Using category column: {category_column}")
         
         # Prepare data
+        data_dict = {}
         if value_column:
-            if value_column not in self.data.columns:
+            if value_column not in self.headers:
                 raise ValueError(f"Value column '{value_column}' not found")
-            data_dict = self.data.groupby(category_column)[value_column].sum().to_dict()
+            # Sum values by category
+            for row in self.data:
+                cat = row.get(category_column)
+                val = row.get(value_column)
+                if cat is not None and isinstance(val, (int, float)):
+                    cat_str = str(cat)
+                    data_dict[cat_str] = data_dict.get(cat_str, 0) + float(val)
         else:
-            data_dict = self.data[category_column].value_counts().to_dict()
+            # Count occurrences
+            for row in self.data:
+                cat = row.get(category_column)
+                if cat is not None:
+                    cat_str = str(cat)
+                    data_dict[cat_str] = data_dict.get(cat_str, 0) + 1
         
-        results = self.tools['pareto'].execute({'data': data_dict})
+        # Validate and calculate
+        validated_data = validate_pareto_data(data_dict)
+        results = calculate_pareto(validated_data)
+        
         self._print_results(results, 'Pareto Analysis')
         return results
     
@@ -188,18 +271,21 @@ class QuickEDA:
         
         # Auto-select column if not specified
         if column is None:
-            numeric_cols = self.data.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) == 0:
-                raise ValueError("No numeric columns found")
-            column = numeric_cols[0]
-            print(f"🔍 Using column: {column}")
+            for col in self.headers:
+                values = [row.get(col) for row in self.data if isinstance(row.get(col), (int, float))]
+                if len(values) >= 3:
+                    column = col
+                    print(f"🔍 Using column: {column}")
+                    break
+            else:
+                raise ValueError("No suitable numeric columns found (need 3+ points)")
         
-        data_values = self.data[column].dropna().tolist()
+        # Extract data values
+        data_values = [row.get(column) for row in self.data if isinstance(row.get(column), (int, float))]
         
-        results = self.tools['probability'].execute({
-            'data': data_values,
-            'distribution': distribution
-        })
+        # Validate and calculate
+        values = validate_numeric_data(data_values, min_points=3)
+        results = calculate_probability_plot(values, distribution)
         
         self._print_results(results, 'Probability Plot')
         return results
@@ -238,7 +324,7 @@ class QuickEDA:
             print(f"❌ Probability plot failed: {e}")
         
         # 4. ANOVA (if group column provided)
-        if group_column is not None and group_column in self.data.columns:
+        if group_column is not None and group_column in self.headers:
             print("\n📊 4. ANOVA - Group Comparison")
             print("-" * 30)
             try:
@@ -278,40 +364,32 @@ class QuickEDA:
 
 
 # Convenience functions for quick analysis
-def quick_i_chart(data: Union[List, np.ndarray, pd.Series], title: str = None) -> Dict[str, Any]:
+def quick_i_chart(data: Union[List, np.ndarray], title: str = None) -> Dict[str, Any]:
     """Quick I-Chart analysis from data list/array"""
-    tool = IChartTool()
     if hasattr(data, 'tolist'):
         data = data.tolist()
-    elif isinstance(data, pd.Series):
-        data = data.dropna().tolist()
     
-    return tool.execute({'data': list(data), 'title': title or 'Quick I-Chart'})
+    values = validate_numeric_data(data, min_points=3)
+    return calculate_i_chart(values, title or 'Quick I-Chart')
 
 
-def quick_capability(data: Union[List, np.ndarray, pd.Series], lsl: float, usl: float, 
+def quick_capability(data: Union[List, np.ndarray], lsl: float, usl: float, 
                     target: float = None) -> Dict[str, Any]:
     """Quick capability analysis from data list/array"""
-    tool = CapabilityTool()
     if hasattr(data, 'tolist'):
         data = data.tolist()
-    elif isinstance(data, pd.Series):
-        data = data.dropna().tolist()
     
-    params = {'data': list(data), 'lsl': lsl, 'usl': usl}
-    if target is not None:
-        params['target'] = target
-    
-    return tool.execute(params)
+    values = validate_numeric_data(data, min_points=10)
+    return calculate_process_capability(values, lsl, usl, target)
 
 
 def quick_pareto(data: Dict[str, Union[int, float]]) -> Dict[str, Any]:
     """Quick Pareto analysis from dictionary"""
-    tool = ParetoTool()
-    return tool.execute({'data': data})
+    validated_data = validate_pareto_data(data)
+    return calculate_pareto(validated_data)
 
 
-def generate_sample_data(data_type: str = 'manufacturing', n: int = 100) -> pd.DataFrame:
+def generate_sample_data(data_type: str = 'manufacturing', n: int = 100) -> List[Dict]:
     """Generate sample datasets for testing"""
     np.random.seed(42)
     
@@ -331,11 +409,11 @@ def generate_sample_data(data_type: str = 'manufacturing', n: int = 100) -> pd.D
                 'sample_id': i + 1,
                 'measurement': round(measurement, 3),
                 'line': line,
-                'defects': np.random.poisson(2),
+                'defects': int(np.random.poisson(2)),
                 'temperature': round(np.random.normal(25, 2), 1)
             })
         
-        return pd.DataFrame(data)
+        return data
     
     elif data_type == 'quality':
         defect_types = ['Surface', 'Dimensional', 'Assembly', 'Material', 'Electrical']
@@ -345,12 +423,12 @@ def generate_sample_data(data_type: str = 'manufacturing', n: int = 100) -> pd.D
             data.append({
                 'inspection_id': i + 1,
                 'defect_type': defect_type,
-                'defect_count': np.random.poisson(3),
+                'defect_count': int(np.random.poisson(3)),
                 'severity': np.random.choice(['Minor', 'Major', 'Critical'], p=[0.6, 0.3, 0.1]),
                 'cost': round(np.random.uniform(10, 100), 2)
             })
         
-        return pd.DataFrame(data)
+        return data
     
     elif data_type == 'process':
         data = []
@@ -364,7 +442,7 @@ def generate_sample_data(data_type: str = 'manufacturing', n: int = 100) -> pd.D
                 'pressure': round(np.random.normal(15, 1), 2)
             })
         
-        return pd.DataFrame(data)
+        return data
     
     else:
         raise ValueError("data_type must be 'manufacturing', 'quality', or 'process'")
