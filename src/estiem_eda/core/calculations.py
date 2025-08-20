@@ -45,7 +45,7 @@ def calculate_i_chart(values: np.ndarray, title: str = "I-Chart Analysis") -> Di
     # Western Electric Rules
     violations = check_western_electric_rules(values, mean, ucl, lcl, sigma_hat)
     
-    # Process capability estimate (if no spec limits, use ±3sigma)
+    # Process capability estimate (if no spec limits, use +/-3sigma)
     natural_tolerance = 6 * sigma_hat
     
     return {

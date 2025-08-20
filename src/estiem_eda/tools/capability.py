@@ -11,7 +11,7 @@ from ..core.calculations import calculate_process_capability
 from ..core.validation import validate_numeric_data, validate_capability_params
 
 try:
-    from ..utils.visualization import create_capability_chart
+    from ..utils.visualization import create_capability_histogram
     VISUALIZATION_AVAILABLE = True
 except ImportError:
     VISUALIZATION_AVAILABLE = False
@@ -79,6 +79,7 @@ class CapabilityTool(BaseTool):
             target = params.get("target")
             
             lsl, usl, target = validate_capability_params(lsl, usl, target)
+            title = params.get("title", "Process Capability Analysis")
             
             # Use core calculation engine
             results = calculate_process_capability(values, lsl, usl, target)
@@ -86,10 +87,14 @@ class CapabilityTool(BaseTool):
             # Add visualization if available
             if VISUALIZATION_AVAILABLE:
                 try:
-                    chart_html = create_capability_chart(
-                        values, lsl, usl, target,
-                        results['statistics']['mean'],
-                        results['statistics']['std_dev']
+                    chart_html = create_capability_histogram(
+                        data=values,
+                        lsl=lsl, 
+                        usl=usl, 
+                        target=target,
+                        mean=results['statistics']['mean'],
+                        std=results['statistics']['std_dev'],
+                        title=title
                     )
                     results['visualization'] = chart_html
                 except Exception as e:

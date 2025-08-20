@@ -68,6 +68,7 @@ class ParetoTool(BaseTool):
             validated_data = validate_pareto_data(data)
             
             threshold = params.get("threshold", 0.8)
+            title = params.get("title", "Pareto Analysis")
             
             # Use core calculation engine
             results = calculate_pareto(validated_data, threshold)
@@ -76,9 +77,11 @@ class ParetoTool(BaseTool):
             if VISUALIZATION_AVAILABLE:
                 try:
                     chart_html = create_pareto_chart(
-                        results['categories'],
-                        results['values'],
-                        results['cumulative_percentages']
+                        categories=results['categories'],
+                        values=results['values'],
+                        cumulative_pct=results['cumulative_percentages'],
+                        vital_few=results['vital_few']['categories'],
+                        title=title
                     )
                     results['visualization'] = chart_html
                 except Exception as e:

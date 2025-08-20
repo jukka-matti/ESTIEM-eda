@@ -11,7 +11,7 @@ from ..core.calculations import calculate_anova
 from ..core.validation import validate_groups_data
 
 try:
-    from ..utils.visualization import create_anova_chart
+    from ..utils.visualization import create_boxplot
     VISUALIZATION_AVAILABLE = True
 except ImportError:
     VISUALIZATION_AVAILABLE = False
@@ -80,9 +80,10 @@ class ANOVATool(BaseTool):
             # Add visualization if available
             if VISUALIZATION_AVAILABLE:
                 try:
-                    chart_html = create_anova_chart(
-                        validated_groups,
-                        results['anova_results']['significant']
+                    chart_html = create_boxplot(
+                        data_groups=list(validated_groups.values()),
+                        group_names=list(validated_groups.keys()),
+                        title="ANOVA Group Comparison"
                     )
                     results['visualization'] = chart_html
                 except Exception as e:

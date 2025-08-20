@@ -77,11 +77,12 @@ class IChartTool(BaseTool):
             if VISUALIZATION_AVAILABLE:
                 try:
                     chart_html = create_control_chart(
-                        values,
-                        results['statistics']['mean'],
-                        results['statistics']['ucl'], 
-                        results['statistics']['lcl'],
-                        title
+                        data=np.array(results['data_points']),
+                        center_line=results['statistics']['mean'],
+                        ucl=results['statistics']['ucl'], 
+                        lcl=results['statistics']['lcl'],
+                        ooc_indices=results['out_of_control_indices'],
+                        title=title
                     )
                     results['visualization'] = chart_html
                 except Exception as e:
