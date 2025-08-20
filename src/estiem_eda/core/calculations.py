@@ -203,8 +203,26 @@ def calculate_anova(groups: Dict[str, np.ndarray], alpha: float = 0.05) -> Dict[
     # Significance
     significant = p_value < alpha
     
-    # Post-hoc analysis (Tukey HSD)
-    post_hoc = calculate_tukey_hsd(groups, msw, alpha) if significant else None
+    # Simple pairwise comparisons if significant (without complex corrections)
+    post_hoc = None
+    if significant and len(groups) <= 5:  # Only for reasonable number of groups
+        try:
+            comparisons = []
+            group_names_list = list(groups.keys())
+            for i in range(len(group_names_list)):
+                for j in range(i + 1, len(group_names_list)):
+                    name1, name2 = group_names_list[i], group_names_list[j]
+                    # Simple t-test between pairs
+                    t_stat, p_val = stats.ttest_ind(groups[name1], groups[name2])
+                    comparisons.append({
+                        'groups': f'{name1} vs {name2}',
+                        'p_value': p_val,
+                        'significant': p_val < alpha,
+                        'mean_diff': np.mean(groups[name2]) - np.mean(groups[name1])
+                    })
+            post_hoc = {'comparisons': comparisons, 'method': 'Simple pairwise t-tests'}
+        except Exception:
+            post_hoc = None
     
     results = {
         'success': True,
@@ -460,53 +478,6 @@ def check_western_electric_rules(values: np.ndarray, mean: float, ucl: float,
     return violations
 
 
-def calculate_tukey_hsd(groups: Dict[str, np.ndarray], msw: float, alpha: float = 0.05) -> Dict[str, Any]:
-    """Calculate Tukey HSD post-hoc comparisons"""
-    group_names = list(groups.keys())
-    group_means = {name: np.mean(data) for name, data in groups.items()}
-    group_sizes = {name: len(data) for name, data in groups.items()}
-    
-    # Degrees of freedom for error
-    df_error = sum(len(data) for data in groups.values()) - len(groups)
-    
-    # Critical value for Tukey HSD
-    k = len(groups)
-    q_critical = stats.tukey_hsd.critical_value(alpha, k, df_error)
-    
-    comparisons = []
-    
-    for i, name1 in enumerate(group_names):
-        for j, name2 in enumerate(group_names):
-            if i < j:  # Avoid duplicate comparisons
-                mean1 = group_means[name1]
-                mean2 = group_means[name2]
-                n1 = group_sizes[name1]
-                n2 = group_sizes[name2]
-                
-                # Calculate HSD
-                pooled_error = msw * (1/n1 + 1/n2) / 2
-                hsd = q_critical * np.sqrt(pooled_error)
-                
-                # Test significance
-                diff = abs(mean1 - mean2)
-                significant = diff > hsd
-                
-                comparisons.append({
-                    'groups': f"{name1} vs {name2}",
-                    'mean_difference': mean1 - mean2,
-                    'hsd': hsd,
-                    'significant': significant,
-                    'p_value': estimate_tukey_p_value(diff, hsd, k, df_error)
-                })
-    
-    return {
-        'method': 'Tukey HSD',
-        'alpha': alpha,
-        'critical_value': q_critical,
-        'comparisons': comparisons
-    }
-
-
 def calculate_gini_coefficient(values: List[float]) -> float:
     """Calculate Gini coefficient for inequality measurement"""
     sorted_values = sorted(values)
@@ -545,20 +516,6 @@ def estimate_anderson_darling_p_value(statistic: float, n: int) -> float:
         return 0.01
     else:
         return 0.005
-
-
-def estimate_tukey_p_value(diff: float, hsd: float, k: int, df: int) -> float:
-    """Estimate p-value for Tukey HSD comparison"""
-    # Simplified p-value estimation
-    ratio = diff / hsd
-    if ratio < 1.0:
-        return 0.9
-    elif ratio < 1.5:
-        return 0.5
-    elif ratio < 2.0:
-        return 0.1
-    else:
-        return 0.01
 
 
 # Interpretation functions
