@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "estiem-eda-toolkit"
 version = "0.1.0"
-description = "MCP server for exploratory data analysis including I-charts, process capability, ANOVA, and Pareto analysis"
+description = "Professional exploratory data analysis toolkit with Google Colab integration, MCP server, and CLI tools for Six Sigma quality control"
 readme = "README.md"
 authors = [
     {name = "ESTIEM", email = "tech@estiem.org"},
@@ -60,7 +60,7 @@ Repository = "https://github.com/jukka-matti/ESTIEM-eda"
 estiem-eda-server = "estiem_eda.mcp_server:main"
 
 [tool.setuptools]
-packages = ["estiem_eda", "estiem_eda.tools", "estiem_eda.utils"]
+packages = ["estiem_eda", "estiem_eda.core", "estiem_eda.tools", "estiem_eda.utils"]
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]

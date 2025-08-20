@@ -1,6 +1,6 @@
-# 📊 ESTIEM EDA - Google Colab Notebooks
+# 📊 ESTIEM EDA - Google Colab
 
-**Quick Start Guide for Google Colab Integration**
+**Professional Statistical Analysis - Zero Installation Required**
 
 ## 🚀 Quick Launch
 
@@ -56,9 +56,9 @@ results = pareto_tool.execute({'data': defect_counts})
 
 ## 🌐 Alternative Access
 
-- **Web App**: [https://jukka-matti.github.io/ESTIEM-eda/](https://jukka-matti.github.io/ESTIEM-eda/)
 - **CLI Tool**: `pip install git+https://github.com/jukka-matti/ESTIEM-eda.git`
 - **MCP Server**: For Claude Desktop integration
+- **Python Package**: Direct Python library usage
 
 ---
 

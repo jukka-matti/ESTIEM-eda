@@ -7,19 +7,19 @@
 [![ESTIEM](https://img.shields.io/badge/ESTIEM-10k%2B_Students-green.svg)](https://estiem.org)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
 
-**Professional Six Sigma toolkit** with 3 core analysis tools and multiple access methods: Web App, Python Package, CLI Tool, Google Colab, and Claude Desktop integration via MCP protocol. Built with **pure NumPy/SciPy** for maximum reliability and compatibility.
+**Professional Six Sigma toolkit** with 3 core analysis tools and streamlined access methods: Google Colab (recommended), Python Package, CLI Tool, and Claude Desktop integration via MCP protocol. Built with **pure NumPy/SciPy** for maximum reliability and compatibility.
 
 ## 🚀 Quick Start
 
-### 🌐 Web Application (Zero Installation)
-**[Launch Web App →](https://jukka-matti.github.io/ESTIEM-eda/)**
-- Drag-and-drop CSV upload
-- Interactive visualizations  
-- Mobile-friendly design
-- 100% browser-based
-
-### 📊 Google Colab (One-Click Setup)
+### 📊 Google Colab (Recommended - Zero Installation)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
+
+- **One-click setup**: No installation required, runs in any browser
+- **Full Python environment**: Complete NumPy/SciPy statistical libraries
+- **Interactive notebooks**: Professional Jupyter interface with visualizations
+- **Mobile-friendly**: Works on phones, tablets, and desktops
+- **Easy sharing**: Shareable links for collaboration and teaching
+- **Reliable execution**: Google's infrastructure handles all complexity
 
 ### 💻 Python Package
 ```bash
@@ -135,18 +135,12 @@ Surface: 45, Dimensional: 32, Assembly: 18, Material: 12, Other: 8"
 
 ## 🔧 Installation Options
 
-### Option 1: Web Application (Recommended)
-**Zero installation required**
-- Visit: [https://jukka-matti.github.io/ESTIEM-eda/](https://jukka-matti.github.io/ESTIEM-eda/)
-- Upload CSV files directly
-- Interactive charts and reports
-
-### Option 2: Google Colab
+### Option 1: Google Colab (Recommended)
 **One-click setup in browser**
 - Click: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
 - Install with: `!pip install git+https://github.com/jukka-matti/ESTIEM-eda.git`
 
-### Option 3: Local Installation
+### Option 2: Local Installation
 ```bash
 git clone https://github.com/jukka-matti/ESTIEM-eda.git
 cd ESTIEM-eda
@@ -154,20 +148,10 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-### Option 4: MCP Server Only
+### Option 3: MCP Server Only
 ```bash
 pip install git+https://github.com/jukka-matti/ESTIEM-eda.git
 python -m estiem_eda.mcp_server  # Test installation
-```
-
-### Option 5: Web Application Deployment
-**For hosting your own web application instance:**
-
-#### Security Headers Required
-```html
-<!-- Add to your web server configuration -->
-Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: require-corp
 ```
 
 #### Claude Desktop Configuration
@@ -182,11 +166,6 @@ Cross-Origin-Embedder-Policy: require-corp
 }
 ```
 
-#### Features
-- **Hybrid CDN System**: CloudFlare → UnPKG → Error handling
-- **Cross-Origin Isolation**: SharedArrayBuffer support for performance
-- **Auto-Fallback**: Graceful degradation when CDNs fail
-- **Mobile Responsive**: Works on all device sizes
 
 ## 🔧 MCP Server Features
 
@@ -215,38 +194,21 @@ Built specifically for:
 
 ## 🏗️ Architecture
 
-### **Dual Implementation Strategy**
-ESTIEM EDA uses a **hybrid architecture** to provide maximum compatibility across all platforms:
+### **Streamlined Architecture**
+ESTIEM EDA uses a **unified NumPy/SciPy core** for maximum reliability across all platforms:
 
 ```
-🖥️ SERVER-SIDE (MCP/CLI/Colab)
+🔧 CORE ENGINE (All Platforms)
 ├── core/calculations.py      # Full NumPy/SciPy implementation
-├── core/validation.py        # Server-side validation
+├── core/validation.py        # Robust data validation
 └── Advanced statistics ✅    # All scipy.stats features
-
-🌐 BROWSER-SIDE (Web App)
-├── browser/core_browser.py   # Browser-compatible calculations
-├── browser/web_adapter.py    # Unified response formatting  
-└── Pyodide + fallbacks ✅   # Works without scipy.stats
-```
-
-### **Hybrid CDN System** 🔄
-Web application uses **enterprise-grade CDN fallback** for maximum reliability:
-
-```
-Primary CDN    : CloudFlare (99%+ reliability)
-                      ↓ if fails
-Fallback CDN   : UnPKG (automatic switching)  
-                      ↓ if both fail
-Error Handling : Graceful degradation
 ```
 
 ### **Multiple Access Methods**
 ```
-🌐 Web App (Browser)     →  🔧 Browser Core + CDN Fallback
+📓 Google Colab         →  🔧 Full NumPy/SciPy Core (Recommended)
 🐍 Python Package       →  🔧 Full NumPy/SciPy Core
 💻 CLI Tool            →  🔧 Full NumPy/SciPy Core
-📓 Google Colab        →  🔧 Full NumPy/SciPy Core  
 🤖 Claude Desktop MCP  →  🔧 Full NumPy/SciPy Core
 ```
 
@@ -263,51 +225,45 @@ Error Handling : Graceful degradation
 ```
 estiem-eda/
 ├── src/estiem_eda/
-│   ├── core/                    # 🔧 Server-side calculation engine
+│   ├── core/                    # 🔧 Unified calculation engine
 │   │   ├── calculations.py      # Full NumPy/SciPy algorithms  
-│   │   └── validation.py        # Server-side data validation
-│   ├── browser/                 # 🌐 Browser-compatible layer
-│   │   ├── core_browser.py      # ⭐ Browser statistics (no scipy)
-│   │   ├── generator.py         # ⭐ Auto browser tools generator
-│   │   └── web_adapter.py       # ⭐ Unified response formatting
+│   │   └── validation.py        # Robust data validation
 │   ├── utils/                   # Advanced features
-│   │   ├── visualization_response.py  # ⭐ Multi-format system
-│   │   ├── format_generators.py       # ⭐ HTML/text generators
-│   │   └── simplified_visualization.py # Reliable chart system
+│   │   ├── visualization_response.py  # Multi-format visualization system
+│   │   ├── format_generators.py       # HTML/text chart generators
+│   │   └── simplified_visualization.py # Reliable chart generation
 │   ├── tools/                   # 3 Core Professional Tools
 │   │   ├── process_analysis.py  # 🔬 Unified process assessment (I-Chart + Capability + Distribution)
 │   │   ├── anova.py            # 📊 ANOVA with box plots and group comparison
 │   │   ├── pareto.py           # 📉 Pareto analysis (80/20 rule) with priority ranking
-│   │   └── enhanced_base.py    # Simplified base class for streamlined tools
-│   ├── mcp_server.py           # Claude Desktop integration (3.0.0)
-│   ├── cli.py                  # Command line interface (streamlined)
+│   │   └── simplified_base.py   # Streamlined base class
+│   ├── mcp_server.py           # Claude Desktop integration
+│   ├── cli.py                  # Command line interface
 │   └── quick_analysis.py       # Python package interface
-├── docs/                       # 🌐 Web application
-│   ├── index.html             # Web app with CDN fallback
-│   ├── app.js                 # ⭐ Hybrid CDN loading system
-│   └── eda_tools.py          # ⭐ Auto-generated from browser core
-├── notebooks/                  # 📓 Google Colab integration
+├── notebooks/                  # 📓 Google Colab integration (Primary Platform)
 ├── tests/                      # Comprehensive test suite
-└── examples/                   # Sample data and usage patterns
+├── examples/                   # Sample data and usage patterns
+└── archive/                    # Archived legacy components
+    └── webapp/                 # Previous web application (archived)
 ```
 
 ### **⭐ Key Features**
-- **Dual Architecture**: Server (full SciPy) + Browser (Pyodide-compatible)
-- **CDN Fallback**: CloudFlare primary → UnPKG fallback → Error handling
-- **Auto-Generated Tools**: Browser tools sync automatically with core
-- **Unified Responses**: Same format across MCP and Web platforms
+- **Unified Architecture**: Single NumPy/SciPy core for all platforms
+- **Google Colab Focus**: Primary platform with zero installation
+- **MCP Integration**: AI-assisted analysis with Claude Desktop
+- **Reliable Execution**: No browser compatibility issues
 
 ## 🏆 Key Features
 
-- **🔧 Unified Core Engine** - Pure NumPy/SciPy for maximum compatibility
+- **🔧 Unified Core Engine** - Pure NumPy/SciPy for maximum reliability
 - **📊 Consistent Results** - Same calculations across all platforms
-- **🌐 Zero Installation** - Browser-based web app with no setup
-- **🐍 Multiple Access Points** - Web, CLI, Python, MCP, Colab
-- **📱 Cross-Platform** - Works on desktop, mobile, tablets
+- **📓 Google Colab Focus** - Zero installation, runs in any browser
+- **🐍 Multiple Access Points** - Colab, CLI, Python, MCP integration
+- **📱 Mobile-Friendly** - Colab works on phones, tablets, desktops
 - **🎓 Educational Focus** - Built for Industrial Engineering students
-- **🚀 Production Ready** - Comprehensive testing, error handling
+- **🚀 Production Ready** - Comprehensive testing, reliable execution
 - **🎨 Professional Visuals** - ESTIEM-branded interactive charts
-- **🔒 Privacy First** - All processing in your browser/local environment
+- **🔒 Privacy First** - All processing in your environment
 - **📖 Open Source** - Apache 2.0 license, contribute freely
 
 ## 🤝 Contributing
