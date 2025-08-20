@@ -15,9 +15,10 @@ The Enhanced ESTIEM EDA MCP Server provides statistical process control tools wi
 
 ### Core Features
 - **5 Statistical Tools**: I-Chart, Process Capability, ANOVA, Pareto Analysis, Probability Plots
-- **Multi-Format Responses**: HTML, React Artifacts, Chart Configurations, Text Fallbacks
-- **Client Detection**: Automatic optimization based on client capabilities
-- **Interactive Visualizations**: Full Plotly integration with ESTIEM branding
+- **Dual Implementation**: Server-side (NumPy/SciPy) + Browser-compatible (Pyodide) cores
+- **HTML Visualizations**: Plotly charts with professional ESTIEM branding
+- **Text Summaries**: Human-readable statistical interpretations
+- **Unified Format**: Consistent responses across MCP and Web platforms
 
 ---
 

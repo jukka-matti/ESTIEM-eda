@@ -145,6 +145,34 @@ pip install git+https://github.com/jukka-matti/ESTIEM-eda.git
 python -m estiem_eda.mcp_server  # Test installation
 ```
 
+### Option 5: Web Application Deployment
+**For hosting your own web application instance:**
+
+#### Security Headers Required
+```html
+<!-- Add to your web server configuration -->
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
+#### Claude Desktop Configuration
+```json
+{
+  "mcpServers": {
+    "estiem-eda": {
+      "command": "python",
+      "args": ["C:/path/to/ESTIEM-eda/src/estiem_eda/mcp_server.py"]
+    }
+  }
+}
+```
+
+#### Features
+- **Hybrid CDN System**: CloudFlare → UnPKG → Error handling
+- **Cross-Origin Isolation**: SharedArrayBuffer support for performance
+- **Auto-Fallback**: Graceful degradation when CDNs fail
+- **Mobile Responsive**: Works on all device sizes
+
 ## 🔧 MCP Server Features
 
 - **JSON-RPC Protocol** - Standard MCP v1.0 compliance
@@ -172,23 +200,39 @@ Built specifically for:
 
 ## 🏗️ Architecture
 
-### **Unified Core Engine**
-All platforms use the **same statistical calculations** for consistent results:
+### **Dual Implementation Strategy**
+ESTIEM EDA uses a **hybrid architecture** to provide maximum compatibility across all platforms:
 
 ```
-🔧 Core Engine (Pure NumPy/SciPy)
-├── core/calculations.py    # 5 statistical algorithms
-├── core/validation.py     # Data validation & cleaning
-└── Consistent results across ALL platforms ✅
+🖥️ SERVER-SIDE (MCP/CLI/Colab)
+├── core/calculations.py      # Full NumPy/SciPy implementation
+├── core/validation.py        # Server-side validation
+└── Advanced statistics ✅    # All scipy.stats features
+
+🌐 BROWSER-SIDE (Web App)
+├── browser/core_browser.py   # Browser-compatible calculations
+├── browser/web_adapter.py    # Unified response formatting  
+└── Pyodide + fallbacks ✅   # Works without scipy.stats
+```
+
+### **Hybrid CDN System** 🔄
+Web application uses **enterprise-grade CDN fallback** for maximum reliability:
+
+```
+Primary CDN    : CloudFlare (99%+ reliability)
+                      ↓ if fails
+Fallback CDN   : UnPKG (automatic switching)  
+                      ↓ if both fail
+Error Handling : Graceful degradation
 ```
 
 ### **Multiple Access Methods**
 ```
-🌐 Web App (Browser)     →  🔧 Core Engine
-🐍 Python Package       →  🔧 Core Engine  
-💻 CLI Tool            →  🔧 Core Engine
-📓 Google Colab        →  🔧 Core Engine
-🤖 Claude Desktop MCP  →  🔧 Core Engine
+🌐 Web App (Browser)     →  🔧 Browser Core + CDN Fallback
+🐍 Python Package       →  🔧 Full NumPy/SciPy Core
+💻 CLI Tool            →  🔧 Full NumPy/SciPy Core
+📓 Google Colab        →  🔧 Full NumPy/SciPy Core  
+🤖 Claude Desktop MCP  →  🔧 Full NumPy/SciPy Core
 ```
 
 ## 🛠️ Requirements
@@ -204,19 +248,40 @@ All platforms use the **same statistical calculations** for consistent results:
 ```
 estiem-eda/
 ├── src/estiem_eda/
-│   ├── core/                  # 🔧 Unified calculation engine
-│   │   ├── calculations.py    # Core statistical algorithms
-│   │   └── validation.py      # Data validation functions
-│   ├── mcp_server.py          # Claude Desktop integration
-│   ├── cli.py                 # Command line interface
-│   ├── quick_analysis.py      # Python package interface
-│   ├── tools/                 # MCP protocol tools
-│   └── utils/                 # Visualization & branding
-├── docs/                      # 🌐 Web application (Pyodide)
-├── notebooks/                 # 📓 Google Colab integration
-├── tests/                     # Comprehensive test suite
-└── examples/                  # Sample data and usage
+│   ├── core/                    # 🔧 Server-side calculation engine
+│   │   ├── calculations.py      # Full NumPy/SciPy algorithms  
+│   │   └── validation.py        # Server-side data validation
+│   ├── browser/                 # 🌐 Browser-compatible layer
+│   │   ├── core_browser.py      # ⭐ Browser statistics (no scipy)
+│   │   ├── generator.py         # ⭐ Auto browser tools generator
+│   │   └── web_adapter.py       # ⭐ Unified response formatting
+│   ├── utils/                   # Advanced features
+│   │   ├── visualization_response.py  # ⭐ Multi-format system
+│   │   ├── format_generators.py       # ⭐ HTML/text generators
+│   │   └── simplified_visualization.py # Reliable chart system
+│   ├── tools/                   # MCP protocol tools
+│   │   ├── i_chart.py          # Individual control charts
+│   │   ├── capability.py       # Process capability analysis
+│   │   ├── anova.py           # ANOVA with box plots
+│   │   ├── pareto.py          # Pareto analysis (80/20 rule)
+│   │   └── probability_plot.py # Distribution assessment
+│   ├── mcp_server.py           # Claude Desktop integration
+│   ├── cli.py                  # Command line interface  
+│   └── quick_analysis.py       # Python package interface
+├── docs/                       # 🌐 Web application
+│   ├── index.html             # Web app with CDN fallback
+│   ├── app.js                 # ⭐ Hybrid CDN loading system
+│   └── eda_tools.py          # ⭐ Auto-generated from browser core
+├── notebooks/                  # 📓 Google Colab integration
+├── tests/                      # Comprehensive test suite
+└── examples/                   # Sample data and usage patterns
 ```
+
+### **⭐ Key Features**
+- **Dual Architecture**: Server (full SciPy) + Browser (Pyodide-compatible)
+- **CDN Fallback**: CloudFlare primary → UnPKG fallback → Error handling
+- **Auto-Generated Tools**: Browser tools sync automatically with core
+- **Unified Responses**: Same format across MCP and Web platforms
 
 ## 🏆 Key Features
 
