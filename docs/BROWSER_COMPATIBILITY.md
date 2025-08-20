@@ -133,6 +133,14 @@ Both implementations provide **identical results** for:
 
 ### **Common Issues & Solutions**
 
+#### **"JsProxy conversion" Error**
+```
+❌ Problem: "float() argument must be a string or a real number, not 'pyodide.ffi.JsProxy'"
+✅ Solution: Automatic JsProxy conversion handles this
+🔧 Fix: Built-in convert_js_to_python() function
+📊 Result: Data processes correctly from JavaScript to Python
+```
+
 #### **"Plotly is not defined" Error**
 ```
 ❌ Problem: CDN loading failed

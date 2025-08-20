@@ -455,7 +455,7 @@ The Streamlined ESTIEM EDA MCP Server provides professional Six Sigma tools with
     "threshold": 0.8,
     "count": 2,
     "categories": ["Surface Defects", "Dimensional Issues"],
-    "contribution_percent": 77.0,
+    "percentage": 77.0,
     "total_value": 770
   },
   "summary": {
@@ -520,7 +520,7 @@ The Streamlined ESTIEM EDA MCP Server provides professional Six Sigma tools with
   "vital_few": {
     "categories": ["Defect A", "Defect B", "Defect C"],
     "count": 3,
-    "contribution_percent": 82.6,
+    "percentage": 82.6,
     "threshold_used": 80.0
   },
   "statistics": {
