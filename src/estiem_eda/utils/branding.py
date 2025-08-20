@@ -1,6 +1,5 @@
 """ESTIEM branding utilities for charts and visualizations."""
 
-
 import plotly.graph_objects as go
 
 # ESTIEM logo as base64 data URI (placeholder - will need actual conversion)
@@ -140,7 +139,10 @@ def apply_estiem_theme(fig: go.Figure) -> go.Figure:
         paper_bgcolor=colors["background"],
         font={"family": "Arial, sans-serif", "size": 12, "color": colors["text_gray"]},
         title_font={
-            "family": "Arial, sans-serif", "size": 16, "color": colors["text_gray"], "weight": "bold"
+            "family": "Arial, sans-serif",
+            "size": 16,
+            "color": colors["text_gray"],
+            "weight": "bold",
         },
     )
 

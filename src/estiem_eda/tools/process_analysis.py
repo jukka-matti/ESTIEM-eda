@@ -11,7 +11,11 @@ from typing import Any
 
 import numpy as np
 
-from ..core.calculations import calculate_process_capability, calculate_i_chart, calculate_probability_plot
+from ..core.calculations import (
+    calculate_i_chart,
+    calculate_probability_plot,
+    calculate_process_capability,
+)
 from .simplified_base import SimplifiedMCPTool
 
 
@@ -136,7 +140,10 @@ class ProcessAnalysisTool(SimplifiedMCPTool):
         if spec_limits:
             try:
                 capability_results = calculate_process_capability(
-                    values, spec_limits.get("lsl"), spec_limits.get("usl"), spec_limits.get("target")
+                    values,
+                    spec_limits.get("lsl"),
+                    spec_limits.get("usl"),
+                    spec_limits.get("target"),
                 )
                 results["capability_analysis"] = {
                     "type": "capability",

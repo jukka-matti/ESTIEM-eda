@@ -149,9 +149,7 @@ class EnhancedVisualizationResponse:
 
         return capabilities
 
-    def get_best_format(
-        self, client_capabilities: dict[str, bool] | None = None
-    ) -> FormatContent:
+    def get_best_format(self, client_capabilities: dict[str, bool] | None = None) -> FormatContent:
         """Get the best visualization format for the client.
 
         Args:

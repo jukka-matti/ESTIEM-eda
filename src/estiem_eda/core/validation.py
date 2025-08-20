@@ -3,7 +3,6 @@ Data validation functions for ESTIEM EDA exploratory data analysis
 Pure Python validation without pandas dependency
 """
 
-
 import numpy as np
 
 

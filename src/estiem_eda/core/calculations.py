@@ -182,7 +182,9 @@ def calculate_anova(groups: dict[str, np.ndarray], alpha: float = 0.05) -> dict[
 
     # Sum of squares
     # Between groups (SSB)
-    ssb = sum(n * (mean - grand_mean) ** 2 for n, mean in zip(group_sizes, group_means, strict=False))
+    ssb = sum(
+        n * (mean - grand_mean) ** 2 for n, mean in zip(group_sizes, group_means, strict=False)
+    )
 
     # Within groups (SSW)
     ssw = sum(np.sum((group - np.mean(group)) ** 2) for group in group_data)

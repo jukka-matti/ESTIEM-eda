@@ -1,6 +1,5 @@
 """Test configuration and fixtures for ESTIEM EDA tests."""
 
-
 import numpy as np
 import pytest
 
