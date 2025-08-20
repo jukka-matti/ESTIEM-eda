@@ -21,7 +21,7 @@ def find_unicode_in_python_files():
         "docs/app.js", 
         "src/estiem_eda/core/calculations.py",
         "src/estiem_eda/core/validation.py",
-        "src/estiem_eda/utils/visualization.py",
+        "src/estiem_eda/utils/simplified_visualization.py",
         "src/estiem_eda/utils/branding.py",
         "src/estiem_eda/mcp_server.py",
         "src/estiem_eda/tools/i_chart.py",

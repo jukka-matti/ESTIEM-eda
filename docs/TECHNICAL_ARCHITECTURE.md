@@ -177,7 +177,7 @@ Data Validation
 
 ### 3. Visualization Layer
 
-#### 3.1 Chart Generation (`utils/visualization.py`)
+#### 3.1 Chart Generation (`utils/simplified_visualization.py`)
 ```python
 Visualization System
 ├── Plotly Integration

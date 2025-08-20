@@ -64,7 +64,7 @@ ESTIEM-eda/
 │   │   ├── pareto.py         # Pareto MCP tool
 │   │   └── probability_plot.py # Probability plot MCP tool
 │   └── utils/                 # Utilities
-│       ├── visualization.py   # Plotly charts
+│       ├── simplified_visualization.py   # Reliable chart system
 │       └── branding.py        # ESTIEM branding
 ├── docs/                      # 🌐 Web application
 │   ├── index.html            # Web app UI
@@ -233,7 +233,7 @@ class YourTool(BaseTool):
 
 ### 2. Add Visualization
 ```python
-# In utils/visualization.py
+# In utils/simplified_visualization.py
 def create_your_chart(data, title="Your Chart"):
     # Plotly implementation
     # Apply ESTIEM branding

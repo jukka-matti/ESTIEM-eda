@@ -157,7 +157,7 @@ class EnhancedVisualizationResponse:
 
 #### 2.1 Enhanced Base Tool Class
 
-**File**: `src/estiem_eda/tools/enhanced_base.py`
+**File**: `src/estiem_eda/tools/simplified_base.py` ✅ **IMPLEMENTED**
 
 **Key Methods**:
 ```python
@@ -236,7 +236,7 @@ def detect_capabilities(request_context: Dict[str, Any]) -> Dict[str, bool]:
 
 #### 4.1 Unit Test Suite
 
-**File**: `tests/test_enhanced_visualization.py`
+**File**: `tests/test_simplified_visualization.py` ✅ **IMPLEMENTED**
 
 **Test Coverage**:
 ```python
