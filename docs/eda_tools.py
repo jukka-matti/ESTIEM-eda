@@ -791,7 +791,9 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
     """
     
     try:
-        print(f"SUCCESS: Processing {analysis_type} analysis")
+        print(f"DEBUG: Starting {analysis_type} analysis")
+        print(f"DEBUG: Data type: {type(data)}")
+        print(f"DEBUG: Parameters: {parameters}")
         
         if analysis_type == 'process_analysis':
             # Handle web data format with column selection
@@ -803,13 +805,13 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
                 # Extract numeric values from selected column
                 values = []
                 for row in data:
+                    row = convert_js_to_python(row)
                     value = row.get(data_column)
-                    if value is not None:
-                        try:
-                            values.append(float(value))
-                        except (ValueError, TypeError):
-                            continue
+                    converted_value = safe_float_conversion(value)
+                    if converted_value is not None:
+                        values.append(converted_value)
                 
+                print(f"DEBUG: Extracted {len(values)} values from column '{data_column}'")
                 if len(values) < 10:
                     raise ValueError(f"Process analysis requires at least 10 valid numeric values, got {len(values)}")
             else:
@@ -824,24 +826,30 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
             result = {}
             
             # 1. Stability Analysis (I-Chart)
+            print("DEBUG: Starting I-Chart analysis")
             try:
                 stability_result = calculate_i_chart_browser(values, "Stability Assessment")
+                print("DEBUG: I-Chart analysis completed successfully")
                 result['stability_analysis'] = {
                     'statistics': stability_result.get('statistics', {}),
                     'out_of_control_indices': stability_result.get('out_of_control_indices', []),
                     'control_status': 'in_control' if len(stability_result.get('out_of_control_indices', [])) == 0 else 'out_of_control'
                 }
             except Exception as e:
+                print(f"DEBUG: I-Chart analysis failed: {e}")
                 result['stability_analysis'] = {'error': str(e)}
             
             # 2. Capability Analysis (if spec limits provided)
+            print(f"DEBUG: Checking capability analysis - spec_limits: {spec_limits}")
             if spec_limits and ('lsl' in spec_limits or 'usl' in spec_limits):
+                print("DEBUG: Starting capability analysis")
                 try:
                     lsl = spec_limits.get('lsl')
                     usl = spec_limits.get('usl')
                     target = spec_limits.get('target')
                     
                     capability_result = calculate_capability_browser(values, lsl, usl, target)
+                    print("DEBUG: Capability analysis completed successfully")
                     result['capability_analysis'] = {
                         'statistics': capability_result.get('statistics', {}),
                         'capability_indices': capability_result.get('capability_indices', {}),
@@ -849,6 +857,7 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
                         'specification_limits': spec_limits
                     }
                 except Exception as e:
+                    print(f"DEBUG: Capability analysis failed: {e}")
                     result['capability_analysis'] = {'error': str(e)}
             else:
                 result['capability_analysis'] = {
@@ -856,8 +865,10 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
                 }
             
             # 3. Distribution Analysis (Probability Plot)
+            print("DEBUG: Starting probability plot analysis")
             try:
                 distribution_result = calculate_probability_plot_browser(values, distribution, confidence_level)
+                print("DEBUG: Probability plot analysis completed successfully")
                 result['distribution_analysis'] = {
                     'distribution': distribution,
                     'statistics': distribution_result.get('statistics', {}),
@@ -866,15 +877,19 @@ def run_analysis(analysis_type: str, data: Any, headers: List[str], parameters: 
                     'sorted_values': distribution_result.get('sorted_values', [])
                 }
             except Exception as e:
+                print(f"DEBUG: Probability plot analysis failed: {e}")
                 result['distribution_analysis'] = {'error': str(e)}
             
             # Create comprehensive interpretation
+            print("DEBUG: Creating interpretation")
             result['interpretation'] = _create_process_analysis_interpretation(result, len(values))
             
             # Generate combined visualization
+            print("DEBUG: Generating chart data")
             result['chart_data'] = _generate_process_analysis_plotly(result, values, spec_limits)
             result['success'] = True
             result['analysis_type'] = 'process_analysis'
+            print("DEBUG: Process analysis completed successfully")
             
             return result
             
