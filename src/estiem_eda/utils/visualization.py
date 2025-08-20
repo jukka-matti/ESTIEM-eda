@@ -125,7 +125,7 @@ def create_control_chart(data: np.ndarray,
             fig.add_annotation(
                 x=idx + 1,
                 y=data[idx],
-                text="⚠",
+                text="!",
                 showarrow=True,
                 arrowhead=2,
                 arrowsize=1,

@@ -8,9 +8,9 @@ try:
     from scipy import stats
     import json
     import math
-    print("✅ All required packages imported successfully")
+    print("SUCCESS: All required packages imported successfully")
 except ImportError as e:
-    print(f"❌ Import error: {e}")
+    print(f"ERROR: Import error: {e}")
     raise
 
 
@@ -407,7 +407,7 @@ def run_analysis(analysis_type, data, headers, parameters):
     """Main analysis dispatcher - browser optimized"""
     
     try:
-        print(f"✅ Processing {analysis_type} analysis")
+        print(f"SUCCESS: Processing {analysis_type} analysis")
         
         if analysis_type == 'i_chart':
             values = validate_numeric_data(data, min_points=3)
@@ -446,7 +446,7 @@ def run_analysis(analysis_type, data, headers, parameters):
             raise ValueError(f'Unknown analysis type: {analysis_type}')
             
     except Exception as e:
-        print(f"❌ Analysis error: {str(e)}")
+        print(f"ERROR: Analysis error: {str(e)}")
         return {
             'success': False,
             'error': str(e),

@@ -49,10 +49,10 @@ async function initializeApp() {
             showWelcomeMessage();
         }, 500);
         
-        console.log('✅ ESTIEM EDA Toolkit ready');
+        console.log('SUCCESS: ESTIEM EDA Toolkit ready');
         
     } catch (error) {
-        console.error('❌ Initialization failed:', error);
+        console.error('ERROR: Initialization failed:', error);
         showError('Failed to initialize. Please refresh the page.', error.message);
     }
 }
@@ -636,11 +636,11 @@ function showError(title, message) {
 
 function showSuccess(message) {
     // TODO: Replace with nicer notification
-    console.log('✅', message);
+    console.log('SUCCESS:', message);
 }
 
 function showWelcomeMessage() {
-    console.log('🎉 Welcome to ESTIEM EDA Toolkit!');
+    console.log('Welcome to ESTIEM EDA Toolkit!');
 }
 
 function getAnalysisTitle(type) {
