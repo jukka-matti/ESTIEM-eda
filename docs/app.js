@@ -572,8 +572,29 @@ json.dumps(result)
         
     } catch (error) {
         hideLoading();
-        console.error('Analysis error:', error);
-        showError('Analysis failed', error.message);
+        console.error('Analysis error details:', error);
+        console.error('Error type:', typeof error);
+        console.error('Error properties:', Object.keys(error));
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        // Better error message handling
+        let errorMessage = 'Unknown error occurred';
+        if (error && typeof error === 'object') {
+            if (error.message && typeof error.message === 'string' && error.message.trim()) {
+                errorMessage = error.message;
+            } else if (error.toString && typeof error.toString === 'function') {
+                const errorStr = error.toString();
+                if (errorStr !== '[object Object]' && errorStr.trim()) {
+                    errorMessage = errorStr;
+                }
+            }
+        } else if (typeof error === 'string' && error.trim()) {
+            errorMessage = error;
+        }
+        
+        console.error('Final error message:', errorMessage);
+        showError('Analysis failed', errorMessage);
     }
 }
 
