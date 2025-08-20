@@ -32,6 +32,32 @@ function validateNumericArray(data) {
     return data.every(item => typeof item === 'number' && !isNaN(item) && isFinite(item));
 }
 
+// Utility: Wait for Plotly to load
+function waitForPlotly(timeout = 10000) {
+    return new Promise((resolve, reject) => {
+        if (typeof Plotly !== 'undefined') {
+            resolve();
+            return;
+        }
+        
+        let attempts = 0;
+        const maxAttempts = timeout / 100; // Check every 100ms
+        
+        const checkPlotly = () => {
+            attempts++;
+            if (typeof Plotly !== 'undefined') {
+                resolve();
+            } else if (attempts >= maxAttempts) {
+                reject(new Error('Plotly failed to load within timeout period'));
+            } else {
+                setTimeout(checkPlotly, 100);
+            }
+        };
+        
+        checkPlotly();
+    });
+}
+
 // Initialize application when page loads
 document.addEventListener('DOMContentLoaded', function() {
     checkCrossOriginIsolation();
@@ -459,12 +485,30 @@ function displayResults(analysisType, results) {
     // Display chart
     if (results.chart_data) {
         const chartData = JSON.parse(results.chart_data);
-        Plotly.newPlot(chartContainer, chartData.data, chartData.layout, {
-            responsive: true,
-            displayModeBar: true,
-            modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
-            displaylogo: false
-        });
+        
+        // Check if Plotly is loaded
+        if (typeof Plotly !== 'undefined') {
+            Plotly.newPlot(chartContainer, chartData.data, chartData.layout, {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+                displaylogo: false
+            });
+        } else {
+            // Fallback: Show chart data as text or wait for Plotly to load
+            console.error('Plotly not loaded yet, attempting to wait...');
+            waitForPlotly().then(() => {
+                Plotly.newPlot(chartContainer, chartData.data, chartData.layout, {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+                    displaylogo: false
+                });
+            }).catch(error => {
+                console.error('Failed to load Plotly:', error);
+                chartContainer.innerHTML = '<div class="error-message">Chart visualization failed to load. Check your internet connection.</div>';
+            });
+        }
     }
     
     // Display statistics
@@ -528,12 +572,17 @@ function displayInterpretation(interpretation) {
 function downloadChart() {
     if (!analysisResults) return;
     
-    Plotly.downloadImage('chartContainer', {
-        format: 'png',
-        width: 1200,
-        height: 800,
-        filename: `estiem_eda_${analysisResults.analysis_type || 'analysis'}_${new Date().getTime()}`
-    });
+    if (typeof Plotly !== 'undefined') {
+        Plotly.downloadImage('chartContainer', {
+            format: 'png',
+            width: 1200,
+            height: 800,
+            filename: `estiem_eda_${analysisResults.analysis_type || 'analysis'}_${new Date().getTime()}`
+        });
+    } else {
+        console.error('Plotly not available for chart download');
+        alert('Chart visualization not ready. Please wait for the page to fully load and try again.');
+    }
 }
 
 /**
@@ -609,7 +658,21 @@ function generateHTMLReport() {
     <script>
         // Embed chart data
         const chartData = ${analysisResults.chart_data};
-        Plotly.newPlot('chart', chartData.data, chartData.layout);
+        
+        // Wait for Plotly to load, then create chart
+        function waitForPlotlyAndCreate() {
+            if (typeof Plotly !== 'undefined') {
+                Plotly.newPlot('chart', chartData.data, chartData.layout);
+            } else {
+                setTimeout(waitForPlotlyAndCreate, 100);
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', waitForPlotlyAndCreate);
+        } else {
+            waitForPlotlyAndCreate();
+        }
     </script>
 </body>
 </html>
