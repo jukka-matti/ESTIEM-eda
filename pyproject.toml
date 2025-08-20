@@ -20,12 +20,11 @@ classifiers = [
     "Topic :: Education",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.21.0",
     "scipy>=1.7.0",
@@ -70,7 +69,7 @@ estiem_eda = ["py.typed"]
 # Black configuration
 [tool.black]
 line-length = 100
-target-version = ['py39', 'py310', 'py311', 'py312']
+target-version = ['py310', 'py311', 'py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -88,7 +87,7 @@ extend-exclude = '''
 
 # Ruff configuration
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 100
 select = [
     "E",  # pycodestyle errors
@@ -114,7 +113,7 @@ known-first-party = ["estiem_eda"]
 
 # MyPy configuration
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
