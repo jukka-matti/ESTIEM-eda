@@ -22,8 +22,8 @@ class ESTIEMMCPServer:
         self.protocol_version = "2025-06-18"
         self.server_info = {
             "name": "estiem-eda",
-            "version": "1.0.0",
-            "description": "Statistical Process Control tools for Lean Six Sigma"
+            "version": "2.0.0",
+            "description": "Enhanced Statistical Process Control tools with multi-format visualization"
         }
         self.setup_logging()
         self.initialize_tools()
@@ -194,25 +194,36 @@ class ESTIEMMCPServer:
         return {"tools": tools_list}
     
     def handle_call_tool(self, params: Dict) -> Dict:
-        """Execute a tool and return results.
+        """Execute a tool and return enhanced multi-format results.
         
         Args:
             params: Tool execution parameters including tool name and arguments.
             
         Returns:
-            Tool execution results or error response.
+            Enhanced tool execution results or error response.
         """
         tool_name = params.get("name")
         arguments = params.get("arguments", {})
         
-        self.logger.info(f"Executing tool: {tool_name}")
+        self.logger.info(f"Executing enhanced tool: {tool_name}")
         
         if tool_name not in self.tools:
             return self.error_response(-32602, f"Unknown tool: {tool_name}")
         
         try:
-            result = self.tools[tool_name].execute(arguments)
-            self.logger.debug(f"Tool {tool_name} executed successfully")
+            # Extract client information for capability detection
+            client_info = {
+                "name": "claude-desktop",  # Default assumption, can be enhanced
+                "version": "1.0.0"
+            }
+            
+            # Execute tool with client information for enhanced response
+            result = self.tools[tool_name].execute(arguments, client_info)
+            self.logger.debug(f"Enhanced tool {tool_name} executed successfully")
+            
+            # Check if this is an enhanced multi-format response
+            if isinstance(result, dict) and "visualization_formats" in result:
+                self.logger.info(f"Generated multi-format response with {len(result.get('visualization_formats', {}))} formats")
             
             return {
                 "content": [{
