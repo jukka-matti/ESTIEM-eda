@@ -1,16 +1,22 @@
 # MCP Server dependencies
 mcp>=1.0.0
 
-# Statistical analysis
-numpy>=1.24.0
-scipy>=1.10.0
-pandas>=2.0.0
+# Statistical analysis (server-side)
+numpy>=1.21.0
+scipy>=1.7.0
 
 # Visualization
-plotly>=5.14.0
+plotly>=5.10.0
+
+# CLI interface  
+click>=8.0.0
 
 # Development dependencies
 pytest>=7.0.0
 pytest-cov>=4.0.0
 black>=23.0.0
 mypy>=1.0.0
+ruff>=0.1.0
+
+# Note: No pandas dependency for browser compatibility
+# Data loading handled by built-in CSV parsing

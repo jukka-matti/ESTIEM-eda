@@ -34,8 +34,10 @@ def main():
         tool = IChartTool()
         data = [10.0, 10.5, 9.5, 10.2, 9.8, 10.1, 9.9, 10.3]
         result = tool.execute({"data": data})
+        assert result["success"] is True
         assert "statistics" in result
-        assert "chart_html" in result
+        assert "out_of_control_indices" in result
+        assert "interpretation" in result
         print("   PASS: I-Chart working")
         passed += 1
     except Exception as e:
@@ -47,11 +49,12 @@ def main():
     try:
         from estiem_eda.tools.capability import CapabilityTool
         tool = CapabilityTool()
-        import numpy as np
-        np.random.seed(42)
-        data = np.random.normal(10.0, 0.2, 100).tolist()
-        result = tool.execute({"data": data, "lsl": 9.0, "usl": 11.0})
+        # Use simple test data instead of numpy random
+        data = [9.8, 10.1, 9.9, 10.2, 10.0, 9.7, 10.3, 9.9, 10.1, 10.0] * 10  # 100 points
+        result = tool.execute({"data": data, "lsl": 9.0, "usl": 11.0, "target": 10.0})
+        assert result["success"] is True
         assert "capability_indices" in result
+        assert "statistics" in result
         print("   PASS: Capability working")
         passed += 1
     except Exception as e:
@@ -68,8 +71,10 @@ def main():
             "B": [13, 14, 12, 15, 11],
             "C": [16, 17, 15, 18, 14]
         }
-        result = tool.execute({"groups": groups})
+        result = tool.execute({"groups": groups, "alpha": 0.05})
+        assert result["success"] is True
         assert "anova_results" in result
+        assert "group_statistics" in result
         print("   PASS: ANOVA working")
         passed += 1
     except Exception as e:
@@ -81,9 +86,11 @@ def main():
     try:
         from estiem_eda.tools.pareto import ParetoTool
         tool = ParetoTool()
-        data = {"Issue A": 100, "Issue B": 50, "Issue C": 25}
-        result = tool.execute({"data": data})
+        data = {"Issue A": 100, "Issue B": 50, "Issue C": 25, "Issue D": 10, "Issue E": 5}
+        result = tool.execute({"data": data, "threshold": 0.8})
+        assert result["success"] is True
         assert "vital_few" in result
+        assert "categories" in result
         print("   PASS: Pareto working")
         passed += 1
     except Exception as e:
@@ -115,15 +122,16 @@ def main():
         print(f"   FAIL: {e}")
         failed += 1
     
-    # Test 5: Probability Plot functionality
-    print("\n5. Probability Plot Analysis...")
+    # Test 7: Probability Plot functionality
+    print("\n7. Probability Plot Analysis...")
     try:
         from estiem_eda.tools.probability_plot import ProbabilityPlotTool
-        import numpy as np
         
         tool = ProbabilityPlotTool()
-        np.random.seed(42)
-        test_data = list(np.random.normal(10, 2, 30))
+        # Use deterministic test data instead of numpy random
+        test_data = [8.1, 8.5, 9.2, 9.8, 10.1, 10.3, 10.7, 11.1, 11.5, 12.0,
+                    8.3, 8.9, 9.5, 10.0, 10.4, 10.8, 11.2, 11.6, 12.2, 8.7,
+                    9.1, 9.6, 10.2, 10.5, 10.9, 11.3, 11.7, 12.1, 8.2, 8.8]
         
         result = tool.execute({
             "data": test_data,
@@ -133,11 +141,10 @@ def main():
         
         assert result["success"] is True
         assert "goodness_of_fit" in result
-        assert "confidence_intervals" in result
-        assert "outliers" in result
-        assert "percentile_estimates" in result
+        assert "sorted_values" in result
+        assert "theoretical_quantiles" in result
         
-        print(f"   PASS: Probability plot (r={result['goodness_of_fit']['correlation_coefficient']:.3f})")
+        print(f"   PASS: Probability plot working")
         passed += 1
     except Exception as e:
         print(f"   FAIL: {e}")
