@@ -1288,26 +1288,116 @@ def _create_process_analysis_interpretation(result: Dict[str, Any], sample_size:
 
 
 def _generate_process_analysis_plotly(result: Dict[str, Any], values: List[float], spec_limits: Dict[str, Any]) -> str:
-    """Generate combined Plotly visualization for process analysis."""
-    # For now, generate I-Chart as the primary visualization
-    # Future enhancement: Create multi-panel dashboard
+    """Generate multi-chart Plotly visualization for process analysis."""
+    print(f"SUCCESS: Generating process analysis charts with {len(values)} data points")
+    print(f"SUCCESS: Available analyses: {list(result.keys())}")
+    print(f"SUCCESS: Spec limits provided: {bool(spec_limits)}")
     
+    charts = []
+    
+    # 1. Stability Analysis (I-Chart) - Primary Chart
     stability = result.get('stability_analysis', {})
     if 'statistics' in stability:
-        # Create I-Chart data structure
         i_chart_result = {
             'data_points': values,
             'control_limits': {
                 'ucl': stability['statistics'].get('ucl', 0),
                 'lcl': stability['statistics'].get('lcl', 0),
-                'cl': stability['statistics'].get('mean', 0)
+                'cl': stability['statistics'].get('mean', 0),
+                'center_line': stability['statistics'].get('mean', 0)
             },
             'out_of_control_indices': stability.get('out_of_control_indices', [])
         }
         
-        return _generate_i_chart_plotly(i_chart_result, "Process Analysis - Control Chart")
+        i_chart_json = _generate_i_chart_plotly(i_chart_result, "Process Control Chart")
+        i_chart_data = json.loads(i_chart_json)
+        
+        charts.append({
+            'id': 'stability',
+            'title': 'Process Control Chart',
+            'subtitle': 'Individual Values Over Time',
+            'data': i_chart_data['data'],
+            'layout': i_chart_data['layout']
+        })
+    
+    # 2. Capability Analysis (Histogram) - Secondary Chart
+    capability = result.get('capability_analysis', {})
+    if capability and not capability.get('error') and spec_limits:
+        try:
+            # Create capability result structure with spec limits
+            capability_result = {
+                'statistics': {
+                    **capability.get('statistics', {}),
+                    'lsl': spec_limits.get('lsl'),
+                    'usl': spec_limits.get('usl'),
+                    'target': spec_limits.get('target')
+                },
+                'capability_indices': capability.get('capability_indices', {})
+            }
+            
+            capability_chart_json = _generate_capability_plotly(capability_result, values)
+            capability_chart_data = json.loads(capability_chart_json)
+            
+            # Enhance layout for capability chart
+            capability_chart_data['layout']['title'] = {
+                'text': 'Process Capability Analysis',
+                'font': {'size': 14, 'color': '#1f4e79'}
+            }
+            
+            charts.append({
+                'id': 'capability',
+                'title': 'Process Capability',
+                'subtitle': 'Distribution vs. Specification Limits',
+                'data': capability_chart_data['data'],
+                'layout': capability_chart_data['layout']
+            })
+        except Exception as e:
+            print(f"WARNING: Capability chart generation failed: {e}")
+    
+    # 3. Distribution Analysis (Probability Plot) - Secondary Chart
+    distribution = result.get('distribution_analysis', {})
+    if distribution and not distribution.get('error'):
+        try:
+            prob_plot_chart_json = _generate_probability_plot_plotly(distribution)
+            prob_plot_chart_data = json.loads(prob_plot_chart_json)
+            
+            # Enhance layout for probability plot
+            prob_plot_chart_data['layout']['title'] = {
+                'text': 'Distribution Assessment',
+                'font': {'size': 14, 'color': '#1f4e79'}
+            }
+            
+            charts.append({
+                'id': 'distribution',
+                'title': 'Distribution Assessment',
+                'subtitle': 'Probability Plot Analysis',
+                'data': prob_plot_chart_data['data'],
+                'layout': prob_plot_chart_data['layout']
+            })
+        except Exception as e:
+            print(f"WARNING: Probability plot generation failed: {e}")
+    
+    # Return multi-chart structure or fallback to single chart
+    print(f"SUCCESS: Generated {len(charts)} charts for process analysis")
+    
+    if len(charts) > 1:
+        print("SUCCESS: Returning multi-chart structure")
+        return json.dumps({
+            'type': 'multi_chart',
+            'charts': charts,
+            'primary_chart': 'stability'
+        })
+    elif len(charts) == 1:
+        print("SUCCESS: Returning single chart fallback")
+        # Fallback to single chart format
+        chart = charts[0]
+        return json.dumps({
+            'data': chart['data'],
+            'layout': chart['layout']
+        })
     else:
-        # Fallback: Simple line chart
+        print("WARNING: No charts generated, using simple fallback")
+        # Ultimate fallback: Simple line chart
         x_values = list(range(1, len(values) + 1))
         
         trace = {

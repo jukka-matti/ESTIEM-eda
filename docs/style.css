@@ -630,7 +630,8 @@ section h3 {
     flex-wrap: wrap;
 }
 
-.results-content {
+/* Single Chart Layout */
+.single-chart-layout {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 2rem;
@@ -642,6 +643,118 @@ section h3 {
     border-radius: var(--border-radius);
     padding: 1rem;
     min-height: 400px;
+}
+
+/* Multi-Chart Layout for Process Analysis */
+.multi-chart-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.chart-primary {
+    grid-column: 1 / -1; /* Spans full width */
+    background: var(--light-gray);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    min-height: 400px;
+}
+
+.chart-secondary {
+    background: var(--light-gray);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    min-height: 300px;
+}
+
+.chart-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-gray);
+}
+
+.chart-header h5 {
+    color: var(--estiem-primary);
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.chart-subtitle {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.chart-plot {
+    min-height: 250px;
+    position: relative;
+}
+
+.chart-primary .chart-plot {
+    min-height: 320px;
+}
+
+.process-results-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+/* Mobile Responsive for Multi-Chart */
+@media (max-width: 1024px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+    
+    .chart-primary {
+        grid-column: 1;
+    }
+    
+    .chart-secondary {
+        min-height: 280px;
+    }
+    
+    .process-results-panels {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .charts-grid {
+        gap: 1rem;
+    }
+    
+    .chart-primary,
+    .chart-secondary {
+        padding: 0.75rem;
+        min-height: 250px;
+    }
+    
+    .chart-primary .chart-plot {
+        min-height: 200px;
+    }
+    
+    .chart-plot {
+        min-height: 180px;
+    }
+    
+    .chart-header h5 {
+        font-size: 1rem;
+    }
+    
+    .chart-subtitle {
+        font-size: 0.8rem;
+    }
 }
 
 .results-panels {

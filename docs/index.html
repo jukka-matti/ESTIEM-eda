@@ -186,19 +186,63 @@
             </div>
             
             <div class="results-content">
-                <div class="chart-container">
-                    <div id="chartContainer"></div>
-                </div>
-                
-                <div class="results-panels">
-                    <div class="stats-panel">
-                        <h4>📊 Statistical Summary</h4>
-                        <div id="statsContainer"></div>
+                <!-- Single Chart Layout (for ANOVA, Pareto) -->
+                <div class="single-chart-layout" id="singleChartLayout" style="display:none;">
+                    <div class="chart-container">
+                        <div id="chartContainer"></div>
                     </div>
                     
-                    <div class="interpretation-panel">
-                        <h4>🎯 Interpretation</h4>
-                        <div id="interpretationContainer"></div>
+                    <div class="results-panels">
+                        <div class="stats-panel">
+                            <h4>📊 Statistical Summary</h4>
+                            <div id="statsContainer"></div>
+                        </div>
+                        
+                        <div class="interpretation-panel">
+                            <h4>🎯 Interpretation</h4>
+                            <div id="interpretationContainer"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Chart Layout (for Process Analysis) -->
+                <div class="multi-chart-layout" id="multiChartLayout" style="display:none;">
+                    <div class="charts-grid">
+                        <div class="chart-primary">
+                            <div class="chart-header">
+                                <h5>📈 Process Control Chart</h5>
+                                <span class="chart-subtitle">Stability Assessment Over Time</span>
+                            </div>
+                            <div id="chartContainer1" class="chart-plot"></div>
+                        </div>
+                        
+                        <div class="chart-secondary">
+                            <div class="chart-header">
+                                <h5>📊 Process Capability</h5>
+                                <span class="chart-subtitle">Distribution vs. Specifications</span>
+                            </div>
+                            <div id="chartContainer2" class="chart-plot"></div>
+                        </div>
+                        
+                        <div class="chart-secondary">
+                            <div class="chart-header">
+                                <h5>📉 Distribution Assessment</h5>
+                                <span class="chart-subtitle">Probability Plot Analysis</span>
+                            </div>
+                            <div id="chartContainer3" class="chart-plot"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="process-results-panels">
+                        <div class="stats-panel">
+                            <h4>📊 Statistical Summary</h4>
+                            <div id="multiStatsContainer"></div>
+                        </div>
+                        
+                        <div class="interpretation-panel">
+                            <h4>🎯 Process Assessment</h4>
+                            <div id="multiInterpretationContainer"></div>
+                        </div>
                     </div>
                 </div>
             </div>

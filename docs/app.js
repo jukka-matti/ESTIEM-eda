@@ -583,9 +583,6 @@ json.dumps(result)
 function displayResults(analysisType, results) {
     const resultsSection = document.getElementById('resultsSection');
     const analysisTitle = document.getElementById('analysisTitle');
-    const chartContainer = document.getElementById('chartContainer');
-    const statsContainer = document.getElementById('statsContainer');
-    const interpretationContainer = document.getElementById('interpretationContainer');
     
     // Validate results first
     if (!results) {
@@ -599,6 +596,31 @@ function displayResults(analysisType, results) {
     }
     
     analysisTitle.textContent = getAnalysisTitle(analysisType) + ' Results';
+    
+    // Determine layout type and display accordingly
+    if (analysisType === 'process_analysis') {
+        displayProcessAnalysisResults(results);
+    } else {
+        displaySingleChartResults(analysisType, results);
+    }
+    
+    resultsSection.style.display = 'block';
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * Display single chart results (ANOVA, Pareto)
+ */
+function displaySingleChartResults(analysisType, results) {
+    const singleLayout = document.getElementById('singleChartLayout');
+    const multiLayout = document.getElementById('multiChartLayout');
+    const chartContainer = document.getElementById('chartContainer');
+    const statsContainer = document.getElementById('statsContainer');
+    const interpretationContainer = document.getElementById('interpretationContainer');
+    
+    // Show single chart layout, hide multi-chart layout
+    singleLayout.style.display = 'grid';
+    multiLayout.style.display = 'none';
     
     // Clear previous content
     chartContainer.innerHTML = '';
@@ -619,20 +641,146 @@ function displayResults(analysisType, results) {
     
     // Display statistics with validation
     if (results.statistics && Object.keys(results.statistics).length > 0) {
-        displayStatistics(results.statistics);
+        displayStatistics(results.statistics, statsContainer);
     } else {
         statsContainer.innerHTML = '<div class="empty-state">📊 No statistical data available</div>';
     }
     
     // Display interpretation with validation
     if (results.interpretation && results.interpretation.trim()) {
-        displayInterpretation(results.interpretation);
+        displayInterpretation(results.interpretation, interpretationContainer);
     } else {
         interpretationContainer.innerHTML = '<div class="empty-state">🎯 No interpretation available</div>';
     }
+}
+
+/**
+ * Display process analysis results with multiple charts
+ */
+function displayProcessAnalysisResults(results) {
+    const singleLayout = document.getElementById('singleChartLayout');
+    const multiLayout = document.getElementById('multiChartLayout');
+    const multiStatsContainer = document.getElementById('multiStatsContainer');
+    const multiInterpretationContainer = document.getElementById('multiInterpretationContainer');
     
-    resultsSection.style.display = 'block';
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
+    // Show multi-chart layout, hide single chart layout
+    singleLayout.style.display = 'none';
+    multiLayout.style.display = 'block';
+    
+    // Clear previous content
+    const chartContainers = ['chartContainer1', 'chartContainer2', 'chartContainer3'];
+    chartContainers.forEach(id => {
+        const container = document.getElementById(id);
+        if (container) container.innerHTML = '';
+    });
+    multiStatsContainer.innerHTML = '';
+    multiInterpretationContainer.innerHTML = '';
+    
+    // Display charts
+    if (results.chart_data) {
+        try {
+            displayProcessCharts(results.chart_data, results);
+        } catch (error) {
+            console.error('Multi-chart display error:', error);
+            showProcessChartsError('Failed to display process analysis charts: ' + error.message);
+        }
+    } else {
+        showProcessChartsError('No chart data available for process analysis');
+    }
+    
+    // Display combined statistics
+    if (results.statistics && Object.keys(results.statistics).length > 0) {
+        displayProcessStatistics(results, multiStatsContainer);
+    } else {
+        multiStatsContainer.innerHTML = '<div class="empty-state">📊 No statistical data available</div>';
+    }
+    
+    // Display interpretation
+    if (results.interpretation && results.interpretation.trim()) {
+        displayInterpretation(results.interpretation, multiInterpretationContainer);
+    } else {
+        multiInterpretationContainer.innerHTML = '<div class="empty-state">🎯 No process assessment available</div>';
+    }
+}
+
+/**
+ * Display multiple charts for process analysis
+ */
+function displayProcessCharts(chartDataString, results) {
+    let chartData;
+    try {
+        chartData = JSON.parse(chartDataString);
+    } catch (error) {
+        throw new Error('Invalid chart data format');
+    }
+    
+    // Check if we have multi-chart data
+    if (chartData.type === 'multi_chart' && chartData.charts) {
+        // Display multiple charts
+        chartData.charts.forEach((chart, index) => {
+            const containerId = `chartContainer${index + 1}`;
+            const container = document.getElementById(containerId);
+            
+            if (container && chart.data && chart.layout) {
+                displayChart(JSON.stringify({data: chart.data, layout: chart.layout}), container);
+            } else if (container) {
+                showChartError(container, `${chart.title || 'Chart'} data not available`);
+            }
+        });
+    } else {
+        // Fallback: display single chart in primary container
+        const primaryContainer = document.getElementById('chartContainer1');
+        if (primaryContainer) {
+            displayChart(chartDataString, primaryContainer);
+        }
+        
+        // Show placeholders for other containers
+        showChartError(document.getElementById('chartContainer2'), 'Capability analysis not available');
+        showChartError(document.getElementById('chartContainer3'), 'Distribution analysis not available');
+    }
+}
+
+/**
+ * Display process analysis statistics combining all components
+ */
+function displayProcessStatistics(results, container) {
+    let combinedStats = {};
+    
+    // Combine statistics from different analysis components
+    if (results.stability_analysis && results.stability_analysis.statistics) {
+        Object.assign(combinedStats, results.stability_analysis.statistics);
+    }
+    
+    if (results.capability_analysis && results.capability_analysis.statistics) {
+        Object.assign(combinedStats, results.capability_analysis.statistics);
+    }
+    
+    if (results.capability_analysis && results.capability_analysis.capability_indices) {
+        Object.assign(combinedStats, results.capability_analysis.capability_indices);
+    }
+    
+    if (results.distribution_analysis && results.distribution_analysis.statistics) {
+        Object.assign(combinedStats, results.distribution_analysis.statistics);
+    }
+    
+    if (Object.keys(combinedStats).length > 0) {
+        displayStatistics(combinedStats, container);
+    } else {
+        container.innerHTML = '<div class="empty-state">📊 No statistical data available</div>';
+    }
+}
+
+/**
+ * Show error for process charts
+ */
+function showProcessChartsError(message) {
+    const chartContainers = ['chartContainer1', 'chartContainer2', 'chartContainer3'];
+    chartContainers.forEach(id => {
+        const container = document.getElementById(id);
+        if (container) {
+            showChartError(container, message);
+        }
+    });
 }
 
 /**
@@ -778,8 +926,10 @@ function closeErrorModal() {
 /**
  * Display statistics table
  */
-function displayStatistics(stats) {
-    const container = document.getElementById('statsContainer');
+function displayStatistics(stats, container = null) {
+    if (!container) {
+        container = document.getElementById('statsContainer');
+    }
     
     let html = '<table class="stats-table">';
     for (const [key, value] of Object.entries(stats)) {
@@ -800,12 +950,14 @@ function displayStatistics(stats) {
 /**
  * Display interpretation
  */
-function displayInterpretation(interpretation) {
-    const container = document.getElementById('interpretationContainer');
+function displayInterpretation(interpretation, container = null) {
+    if (!container) {
+        container = document.getElementById('interpretationContainer');
+    }
     
     container.innerHTML = `
         <div class="interpretation-content">
-            <p>${interpretation}</p>
+            <p>${escapeHtml(interpretation)}</p>
             <div class="learn-more">
                 <p><strong>Want to learn more?</strong></p>
                 <a href="https://estiem.org/leansixsigma" target="_blank" class="learn-link">
