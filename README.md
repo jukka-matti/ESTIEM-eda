@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![ESTIEM](https://img.shields.io/badge/ESTIEM-60k%2B_Students-green.svg)](https://estiem.org)
+[![ESTIEM](https://img.shields.io/badge/ESTIEM-10k%2B_Students-green.svg)](https://estiem.org)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
 
 **Professional Six Sigma toolkit** with 3 core analysis tools and multiple access methods: Web App, Python Package, CLI Tool, Google Colab, and Claude Desktop integration via MCP protocol. Built with **pure NumPy/SciPy** for maximum reliability and compatibility.
@@ -324,7 +324,7 @@ Apache 2.0 - see [LICENSE](LICENSE) for details.
 
 ## 🌟 About ESTIEM
 
-[ESTIEM](https://estiem.org) connects 60,000+ Industrial Engineering students across Europe through education, conferences, and professional development.
+[ESTIEM](https://estiem.org) connects 10,000+ Industrial Engineering students across 27 countries through education, conferences, and professional development.
 
 ## 👨‍💻 Creator
 

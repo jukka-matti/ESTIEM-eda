@@ -360,6 +360,6 @@ Contributors will be:
 
 **Thank you for contributing to ESTIEM EDA Toolkit!** 
 
-Your contributions help 60,000+ Industrial Engineering students worldwide learn statistical process control and Lean Six Sigma methodologies.
+Your contributions help 10,000+ Industrial Engineering students worldwide learn exploratory data analysis and Lean Six Sigma methodologies.
 
 *Built by students, for students. Forever free for educational use.*

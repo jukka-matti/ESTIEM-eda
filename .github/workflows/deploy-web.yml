@@ -86,4 +86,4 @@ jobs:
         echo "- ✅ Mobile-responsive design" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Zero installation required" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Ready to serve 60,000+ ESTIEM students worldwide! 🎓**" >> $GITHUB_STEP_SUMMARY
+        echo "**Ready to serve 10,000+ ESTIEM students worldwide! 🎓**" >> $GITHUB_STEP_SUMMARY

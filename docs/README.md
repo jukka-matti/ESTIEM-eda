@@ -66,7 +66,7 @@ Fully responsive design works on:
 
 ## 🌍 About ESTIEM
 
-Built by [ESTIEM](https://estiem.org) - the European Students of Technology in Engineering and Management network connecting 60,000+ students across 35+ countries.
+Built by [ESTIEM](https://estiem.org) - the European Students of Industrial Engineering and Management network connecting 10,000+ students across 27 countries.
 
 ## 📄 License
 

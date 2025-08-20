@@ -62,4 +62,4 @@ results = pareto_tool.execute({'data': defect_counts})
 
 ---
 
-**🎓 Built by ESTIEM for 60,000+ Industrial Engineering students**
+**🎓 Built by ESTIEM for 10,000+ Industrial Engineering students**
