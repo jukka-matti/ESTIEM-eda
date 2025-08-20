@@ -383,6 +383,19 @@ def create_boxplot(data_groups: List[np.ndarray],
     for i, (name, data) in enumerate(zip(group_names, data_groups)):
         color = colors[i % len(colors)]
         
+        # Parse RGB values from rgb(r,g,b) string format
+        if color.startswith('rgb('):
+            rgb_values = color[4:-1].split(',')
+            r, g, b = [int(val.strip()) for val in rgb_values]
+            fill_color = f'rgba({r}, {g}, {b}, 0.7)'
+        else:
+            # Fallback for hex colors
+            try:
+                rgb = px.colors.hex_to_rgb(color)
+                fill_color = f'rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.7)'
+            except:
+                fill_color = 'rgba(128, 128, 128, 0.7)'  # Gray fallback
+        
         fig.add_trace(go.Box(
             y=data,
             name=str(name),
@@ -390,7 +403,7 @@ def create_boxplot(data_groups: List[np.ndarray],
             marker_color=color,
             marker_size=6,
             line_width=2,
-            fillcolor=f'rgba{tuple(list(px.colors.hex_to_rgb(color)) + [0.7])}',
+            fillcolor=fill_color,
             hovertemplate=f'<b>{name}</b><br>' +
                          'Value: %{y:.4f}<br>' +
                          '<extra></extra>',
