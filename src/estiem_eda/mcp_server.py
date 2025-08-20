@@ -7,7 +7,23 @@ exploratory data analysis tools for Lean Six Sigma education.
 import json
 import sys
 import logging
+import numpy as np
 from typing import Dict, Any, List, Optional
+
+
+class MCPJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder for MCP responses."""
+    
+    def default(self, obj):
+        if isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
 
 
 class ESTIEMMCPServer:
@@ -225,7 +241,7 @@ class ESTIEMMCPServer:
             return {
                 "content": [{
                     "type": "text",
-                    "text": json.dumps(enhanced_result, indent=2)
+                    "text": json.dumps(enhanced_result, indent=2, cls=MCPJSONEncoder)
                 }]
             }
         except ValueError as e:

@@ -9,6 +9,7 @@ from typing import Dict, Any, List, Optional
 import logging
 
 from .base import BaseMCPTool
+from ..browser.core_browser import generate_sample_data_browser
 
 
 class SimplifiedMCPTool(BaseMCPTool):
@@ -168,12 +169,18 @@ class SimplifiedMCPTool(BaseMCPTool):
                 formatted[key] = round(value, 4)
             elif isinstance(value, int):
                 formatted[key] = value
+            elif isinstance(value, bool):
+                # Convert booleans to strings for JSON compatibility
+                formatted[key] = value
             elif isinstance(value, list):
                 # Format lists of numbers
                 try:
                     formatted[key] = [round(float(x), 4) if isinstance(x, (int, float)) else x for x in value]
                 except (ValueError, TypeError):
                     formatted[key] = value
+            elif isinstance(value, dict):
+                # Recursively format nested dictionaries
+                formatted[key] = self.format_statistics(value)
             else:
                 formatted[key] = value
         
@@ -222,3 +229,15 @@ class SimplifiedMCPTool(BaseMCPTool):
             "required": ["data"],
             "additionalProperties": True
         }
+    
+    @staticmethod
+    def generate_sample_data(sample_type: str = 'manufacturing') -> Dict[str, Any]:
+        """Generate sample data using unified browser-compatible generator.
+        
+        Args:
+            sample_type: Type of sample data ('manufacturing', 'quality', 'process')
+            
+        Returns:
+            Dictionary with sample data, headers, and filename
+        """
+        return generate_sample_data_browser(sample_type)

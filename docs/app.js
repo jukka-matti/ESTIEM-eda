@@ -32,6 +32,50 @@ function validateNumericArray(data) {
     return data.every(item => typeof item === 'number' && !isNaN(item) && isFinite(item));
 }
 
+// Hybrid CDN system: CloudFlare primary + UnPKG fallback
+const plotlyCDNs = [
+    'https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js',  // Primary: Most reliable
+    'https://unpkg.com/plotly.js-dist@2.27.0/plotly.min.js'                  // Fallback: Good backup
+];
+
+let currentCDNIndex = 0;
+let plotlyLoadAttempted = false;
+
+// Load Plotly with hybrid CDN fallback
+function loadPlotlyWithFallback() {
+    if (plotlyLoadAttempted) return;
+    plotlyLoadAttempted = true;
+    
+    function tryNextCDN() {
+        if (currentCDNIndex >= plotlyCDNs.length) {
+            console.error('❌ All Plotly CDNs failed to load');
+            showError('Chart visualization unavailable', 'Please check your internet connection and refresh the page.');
+            return;
+        }
+        
+        const cdnUrl = plotlyCDNs[currentCDNIndex];
+        console.log(`🔄 Loading Plotly from: ${cdnUrl}`);
+        
+        const script = document.createElement('script');
+        script.src = cdnUrl;
+        script.async = true;
+        
+        script.onload = function() {
+            console.log(`✅ Plotly loaded successfully from: ${cdnUrl}`);
+        };
+        
+        script.onerror = function() {
+            console.log(`❌ Failed to load Plotly from: ${cdnUrl}`);
+            currentCDNIndex++;
+            setTimeout(tryNextCDN, 500); // Wait 500ms before trying next CDN
+        };
+        
+        document.head.appendChild(script);
+    }
+    
+    tryNextCDN();
+}
+
 // Utility: Wait for Plotly to load
 function waitForPlotly(timeout = 10000) {
     return new Promise((resolve, reject) => {
@@ -61,6 +105,7 @@ function waitForPlotly(timeout = 10000) {
 // Initialize application when page loads
 document.addEventListener('DOMContentLoaded', function() {
     checkCrossOriginIsolation();
+    loadPlotlyWithFallback();  // Start loading Plotly with fallback system
     initializeApp();
     setupEventListeners();
 });
