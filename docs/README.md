@@ -10,6 +10,8 @@
 - 📊 **5 Statistical Tools**: I-Chart, Process Capability, ANOVA, Pareto, Probability Plot
 - 📱 **Mobile-friendly**: Works on all devices
 - 🔒 **Privacy-first**: All data processing in your browser
+- 🔧 **Reliable**: Pure NumPy/SciPy engine (no pandas compatibility issues)
+- 📊 **Consistent**: Same calculations as Python/CLI versions
 - 🎓 **Educational**: Designed for Lean Six Sigma learning
 - 🌍 **Free**: No registration, no limits
 
@@ -19,7 +21,7 @@
 |------|-------------|----------|
 | **I-Chart** | Individual control charts with Western Electric rules | Process monitoring, SPC |
 | **Process Capability** | Cp/Cpk analysis with Six Sigma levels | Process qualification |
-| **ANOVA** | One-way analysis of variance with post-hoc tests | Group comparisons |
+| **ANOVA** | One-way analysis of variance with pairwise comparisons | Group comparisons |
 | **Pareto Analysis** | 80/20 rule identification with Gini coefficient | Root cause analysis |
 | **Probability Plot** | Normal/Weibull/Lognormal plots with 95% CI | Distribution assessment |
 
@@ -49,9 +51,10 @@ Perfect for:
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **Python Runtime**: Pyodide (Python in browser)
-- **Visualization**: Plotly.js
-- **Data Processing**: NumPy, SciPy, Pandas
-- **Hosting**: GitHub Pages (free)
+- **Core Engine**: Pure NumPy/SciPy (pandas-free)
+- **Visualization**: Plotly.js with ESTIEM branding
+- **Data Processing**: Client-side only (100% privacy)
+- **Hosting**: GitHub Pages (free CDN)
 
 ## 📱 Mobile Support
 

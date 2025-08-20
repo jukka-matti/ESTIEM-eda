@@ -6,9 +6,10 @@ Welcome! We're excited you want to contribute to the ESTIEM Exploratory Data Ana
 
 ### Prerequisites
 
-- Python 3.9+ (3.11+ recommended)
+- Python 3.8+ (3.11+ recommended for full features)
 - Git
 - Basic knowledge of statistical process control and Lean Six Sigma
+- NumPy/SciPy experience helpful for core development
 
 ### Development Setup
 
@@ -40,7 +41,8 @@ Welcome! We're excited you want to contribute to the ESTIEM Exploratory Data Ana
 
 5. **Verify Setup**
    ```bash
-   python simple_test.py
+   python test_simple.py  # Test core functionality
+   python simple_test.py  # Test MCP integration
    ```
 
 ## 🏗️ Project Structure
@@ -48,21 +50,55 @@ Welcome! We're excited you want to contribute to the ESTIEM Exploratory Data Ana
 ```
 ESTIEM-eda/
 ├── src/estiem_eda/
-│   ├── mcp_server.py          # Main MCP server
-│   ├── tools/                 # Statistical analysis tools
-│   │   ├── base.py           # Base tool class
-│   │   ├── i_chart.py        # Individual control charts
-│   │   ├── capability.py     # Process capability analysis
-│   │   ├── anova.py          # ANOVA analysis
-│   │   ├── pareto.py         # Pareto analysis
-│   │   └── probability_plot.py # Probability plots
+│   ├── core/                  # 🔧 Unified calculation engine
+│   │   ├── calculations.py    # Core statistical algorithms
+│   │   └── validation.py      # Data validation functions
+│   ├── mcp_server.py          # Claude Desktop MCP server
+│   ├── cli.py                 # Command line interface
+│   ├── quick_analysis.py      # Python package interface
+│   ├── tools/                 # MCP protocol tools
+│   │   ├── base.py           # Base MCP tool class
+│   │   ├── i_chart.py        # I-Chart MCP tool
+│   │   ├── capability.py     # Capability MCP tool
+│   │   ├── anova.py          # ANOVA MCP tool
+│   │   ├── pareto.py         # Pareto MCP tool
+│   │   └── probability_plot.py # Probability plot MCP tool
 │   └── utils/                 # Utilities
 │       ├── visualization.py   # Plotly charts
 │       └── branding.py        # ESTIEM branding
-├── tests/                     # Test suite
-├── examples/                  # Sample data and usage
-└── docs/                      # Documentation
+├── docs/                      # 🌐 Web application
+│   ├── index.html            # Web app UI
+│   ├── app.js                # Web app logic
+│   └── eda_tools.py          # Browser Python tools
+├── tests/                     # Comprehensive test suite
+├── notebooks/                 # Google Colab integration
+└── examples/                  # Sample data and usage
 ```
+
+## 🔧 **Core Architecture**
+
+The toolkit uses a **unified core engine** approach:
+
+```
+📊 All Statistical Calculations
+        ↓
+🔧 src/estiem_eda/core/
+├── calculations.py  ← Pure NumPy/SciPy implementations
+└── validation.py    ← Data cleaning & validation
+        ↓
+🚀 Multiple Access Points:
+├── 🌐 Web App (docs/eda_tools.py)
+├── 🐍 Python Package (quick_analysis.py)  
+├── 💻 CLI Tool (cli.py)
+├── 📓 Google Colab (notebooks/)
+└── 🤖 Claude Desktop (tools/*.py)
+```
+
+**Key Benefits:**
+- ✅ Identical results across all platforms
+- ✅ No pandas dependency (browser compatible)
+- ✅ Easy to test and maintain
+- ✅ Single source of truth for calculations
 
 ## 🛠️ Development Workflow
 

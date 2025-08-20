@@ -1,13 +1,13 @@
 # ESTIEM EDA Toolkit
 
-**Statistical Process Control MCP Server for Lean Six Sigma Education**
+**Professional Exploratory Data Analysis for Industrial Engineering Applications**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![ESTIEM](https://img.shields.io/badge/ESTIEM-60k%2B_Students-green.svg)](https://estiem.org)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
 
-Professional exploratory data analysis tools for Industrial Engineering applications, integrated with Claude Desktop and AI assistants via MCP protocol.
+**Comprehensive exploratory data analysis toolkit** with multiple access methods: Web App, Python Package, CLI Tool, Google Colab, and Claude Desktop integration via MCP protocol. Built with **pure NumPy/SciPy** for maximum reliability and compatibility.
 
 ## 🚀 Quick Start
 
@@ -67,7 +67,7 @@ Add to your Claude Desktop config:
 |------|-------------|----------|
 | **I-Chart** | Individual control charts with Western Electric rules | Process monitoring, SPC |
 | **Process Capability** | Cp/Cpk analysis with Six Sigma levels | Process qualification |
-| **ANOVA** | One-way ANOVA with Tukey HSD post-hoc | Group comparisons |
+| **ANOVA** | One-way ANOVA with pairwise comparisons | Group comparisons |
 | **Pareto Analysis** | 80/20 rule identification | Root cause analysis |
 | **Probability Plot** | Normal/Weibull/Lognormal plots with 95% confidence intervals | Distribution assessment, outlier detection |
 
@@ -170,39 +170,66 @@ Built specifically for:
 - **Quality Management education**
 - **Statistical process control training**
 
+## 🏗️ Architecture
+
+### **Unified Core Engine**
+All platforms use the **same statistical calculations** for consistent results:
+
+```
+🔧 Core Engine (Pure NumPy/SciPy)
+├── core/calculations.py    # 5 statistical algorithms
+├── core/validation.py     # Data validation & cleaning
+└── Consistent results across ALL platforms ✅
+```
+
+### **Multiple Access Methods**
+```
+🌐 Web App (Browser)     →  🔧 Core Engine
+🐍 Python Package       →  🔧 Core Engine  
+💻 CLI Tool            →  🔧 Core Engine
+📓 Google Colab        →  🔧 Core Engine
+🤖 Claude Desktop MCP  →  🔧 Core Engine
+```
+
 ## 🛠️ Requirements
 
-- Python 3.11+
-- NumPy, SciPy, Pandas
-- Plotly (for visualizations)
-- Click (for CLI)
-- Claude Desktop (for AI integration)
+- **Python 3.8+** (broad compatibility)
+- **NumPy, SciPy** (core calculations)
+- **Click** (CLI interface)
+- **Plotly** (visualizations, optional)
+- **No pandas dependency** (browser-compatible)
 
 ## 📁 Project Structure
 
 ```
 estiem-eda/
 ├── src/estiem_eda/
-│   ├── mcp_server.py          # Main MCP server
+│   ├── core/                  # 🔧 Unified calculation engine
+│   │   ├── calculations.py    # Core statistical algorithms
+│   │   └── validation.py      # Data validation functions
+│   ├── mcp_server.py          # Claude Desktop integration
 │   ├── cli.py                 # Command line interface
-│   ├── quick_analysis.py      # Streamlined analysis
-│   ├── tools/                 # Statistical analysis tools
+│   ├── quick_analysis.py      # Python package interface
+│   ├── tools/                 # MCP protocol tools
 │   └── utils/                 # Visualization & branding
-├── docs/                      # Web application
-├── notebooks/                 # Google Colab integration
+├── docs/                      # 🌐 Web application (Pyodide)
+├── notebooks/                 # 📓 Google Colab integration
 ├── tests/                     # Comprehensive test suite
-├── examples/                  # Sample data and usage
-└── simple_test.py            # Quick functionality test
+└── examples/                  # Sample data and usage
 ```
 
 ## 🏆 Key Features
 
-- **Multiple Access Points** - Web, CLI, Python, MCP, Colab
-- **ESTIEM Branded Charts** - Every visualization promotes ESTIEM
-- **Production Ready** - Full test coverage, error handling
-- **Educational Focused** - Designed for student learning
-- **Professional Quality** - Industry-standard statistical methods
-- **Open Source** - Apache 2.0 license, contribute freely
+- **🔧 Unified Core Engine** - Pure NumPy/SciPy for maximum compatibility
+- **📊 Consistent Results** - Same calculations across all platforms
+- **🌐 Zero Installation** - Browser-based web app with no setup
+- **🐍 Multiple Access Points** - Web, CLI, Python, MCP, Colab
+- **📱 Cross-Platform** - Works on desktop, mobile, tablets
+- **🎓 Educational Focus** - Built for Industrial Engineering students
+- **🚀 Production Ready** - Comprehensive testing, error handling
+- **🎨 Professional Visuals** - ESTIEM-branded interactive charts
+- **🔒 Privacy First** - All processing in your browser/local environment
+- **📖 Open Source** - Apache 2.0 license, contribute freely
 
 ## 🤝 Contributing
 
