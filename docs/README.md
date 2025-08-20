@@ -1,6 +1,6 @@
 # 📊 ESTIEM EDA Toolkit - Web Application
 
-**Professional Statistical Analysis - Forever Free**
+**Exploratory Data Analysis - Forever Free**
 
 🌐 **Live Demo:** [https://jukka-matti.github.io/ESTIEM-eda/](https://jukka-matti.github.io/ESTIEM-eda/)
 
@@ -41,7 +41,7 @@
 
 Perfect for:
 - **ESTIEM Lean Six Sigma Certification**
-- **Industrial Engineering courses**
+- **Industrial Engineering applications**
 - **Quality Management training**
 - **DMAIC methodology learning**
 

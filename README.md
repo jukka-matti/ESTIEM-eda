@@ -5,24 +5,50 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![ESTIEM](https://img.shields.io/badge/ESTIEM-60k%2B_Students-green.svg)](https://estiem.org)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
 
-Professional exploratory data analysis tools for Industrial Engineering students, integrated with Claude Desktop and AI assistants via MCP protocol.
+Professional exploratory data analysis tools for Industrial Engineering applications, integrated with Claude Desktop and AI assistants via MCP protocol.
 
 ## 🚀 Quick Start
 
-### Installation
+### 🌐 Web Application (Zero Installation)
+**[Launch Web App →](https://jukka-matti.github.io/ESTIEM-eda/)**
+- Drag-and-drop CSV upload
+- Interactive visualizations  
+- Mobile-friendly design
+- 100% browser-based
+
+### 📊 Google Colab (One-Click Setup)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
+
+### 💻 Python Package
 ```bash
-git clone https://github.com/jukka-matti/ESTIEM-eda.git
-cd ESTIEM-eda
-pip install -r requirements.txt
+pip install git+https://github.com/jukka-matti/ESTIEM-eda.git
 ```
 
-### Test the Server
-```bash
-python simple_test.py
+```python
+from estiem_eda import QuickEDA, generate_sample_data
+
+# Load sample data
+data = generate_sample_data('manufacturing')
+eda = QuickEDA().load_data(data)
+
+# Run comprehensive analysis
+results = eda.analyze_all('measurement', lsl=9.0, usl=11.0, group_column='line')
 ```
 
-### Claude Desktop Integration
+### 🖥️ Command Line Tool
+```bash
+# Generate sample data
+estiem-eda sample-data --type manufacturing
+
+# Run analyses
+estiem-eda i-chart sample_data.csv
+estiem-eda capability sample_data.csv --lsl 9.0 --usl 11.0
+estiem-eda anova sample_data.csv --value measurement --group line
+```
+
+### 🤖 Claude Desktop Integration
 Add to your Claude Desktop config:
 ```json
 {
@@ -45,7 +71,41 @@ Add to your Claude Desktop config:
 | **Pareto Analysis** | 80/20 rule identification | Root cause analysis |
 | **Probability Plot** | Normal/Weibull/Lognormal plots with 95% confidence intervals | Distribution assessment, outlier detection |
 
-## 💡 Example Usage
+## 💡 Usage Examples
+
+### Quick Analysis
+```python
+from estiem_eda import quick_i_chart, quick_capability, quick_pareto
+
+# Quick analyses without data loading
+measurements = [9.8, 10.2, 9.9, 10.1, 10.3, 9.7, 10.0, 10.4]
+
+# Control chart
+i_results = quick_i_chart(measurements)
+
+# Process capability  
+cap_results = quick_capability(measurements, lsl=9.5, usl=10.5)
+
+# Pareto analysis
+defects = {'Surface': 45, 'Dimensional': 32, 'Assembly': 18}
+pareto_results = quick_pareto(defects)
+```
+
+### Comprehensive Analysis
+```python
+from estiem_eda import QuickEDA, generate_sample_data
+
+# Load sample manufacturing data
+data = generate_sample_data('manufacturing', 100)
+eda = QuickEDA().load_data(data).preview()
+
+# Run all analyses
+results = eda.analyze_all(
+    measurement_column='measurement',
+    lsl=9.0, usl=11.0,
+    group_column='line'
+)
+```
 
 ### With Claude Desktop
 ```
@@ -58,20 +118,31 @@ Data: [9.8, 10.2, 9.9, 10.1, 10.3, 9.7, 10.0, 10.4, 10.2, 9.9]
 Check for outliers and distribution fit"
 ```
 
-### Direct Python Usage
-```python
-from estiem_eda.tools.capability import CapabilityTool
+## 🔧 Installation Options
 
-tool = CapabilityTool()
-result = tool.execute({
-    "data": [9.8, 10.2, 9.9, 10.1, 10.3, 9.7, 10.0, 10.4],
-    "lsl": 9.5,
-    "usl": 10.5,
-    "target": 10.0
-})
+### Option 1: Web Application (Recommended)
+**Zero installation required**
+- Visit: [https://jukka-matti.github.io/ESTIEM-eda/](https://jukka-matti.github.io/ESTIEM-eda/)
+- Upload CSV files directly
+- Interactive charts and reports
 
-print(f"Cpk: {result['capability_indices']['cpk']:.3f}")
-print(result['interpretation'])
+### Option 2: Google Colab
+**One-click setup in browser**
+- Click: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
+- Install with: `!pip install git+https://github.com/jukka-matti/ESTIEM-eda.git`
+
+### Option 3: Local Installation
+```bash
+git clone https://github.com/jukka-matti/ESTIEM-eda.git
+cd ESTIEM-eda
+pip install -r requirements.txt
+pip install -e .
+```
+
+### Option 4: MCP Server Only
+```bash
+pip install git+https://github.com/jukka-matti/ESTIEM-eda.git
+python -m estiem_eda.mcp_server  # Test installation
 ```
 
 ## 🔧 MCP Server Features
@@ -95,7 +166,7 @@ Perfect for DMAIC methodology:
 
 Built specifically for:
 - **ESTIEM Lean Six Sigma Certification**
-- **Industrial Engineering coursework**
+- **Industrial Engineering applications**
 - **Quality Management education**
 - **Statistical process control training**
 
@@ -104,6 +175,7 @@ Built specifically for:
 - Python 3.11+
 - NumPy, SciPy, Pandas
 - Plotly (for visualizations)
+- Click (for CLI)
 - Claude Desktop (for AI integration)
 
 ## 📁 Project Structure
@@ -112,8 +184,12 @@ Built specifically for:
 estiem-eda/
 ├── src/estiem_eda/
 │   ├── mcp_server.py          # Main MCP server
+│   ├── cli.py                 # Command line interface
+│   ├── quick_analysis.py      # Streamlined analysis
 │   ├── tools/                 # Statistical analysis tools
 │   └── utils/                 # Visualization & branding
+├── docs/                      # Web application
+├── notebooks/                 # Google Colab integration
 ├── tests/                     # Comprehensive test suite
 ├── examples/                  # Sample data and usage
 └── simple_test.py            # Quick functionality test
@@ -121,6 +197,7 @@ estiem-eda/
 
 ## 🏆 Key Features
 
+- **Multiple Access Points** - Web, CLI, Python, MCP, Colab
 - **ESTIEM Branded Charts** - Every visualization promotes ESTIEM
 - **Production Ready** - Full test coverage, error handling
 - **Educational Focused** - Designed for student learning

@@ -36,6 +36,7 @@ setup(
     entry_points={
         "console_scripts": [
             "estiem-eda-server=estiem_eda.mcp_server:main",
+            "estiem-eda=estiem_eda.cli:main",
         ],
     },
 )
