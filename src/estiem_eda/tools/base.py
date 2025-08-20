@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 class BaseTool(ABC):
     """Base class for all statistical tools.
     
-    All statistical analysis tools must inherit from this class and implement
+    All exploratory data analysis tools must inherit from this class and implement
     the required abstract methods for MCP protocol compliance.
     """
     

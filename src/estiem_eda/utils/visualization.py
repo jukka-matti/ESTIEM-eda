@@ -1,4 +1,4 @@
-"""Interactive visualization utilities using Plotly for statistical analysis charts.
+"""Interactive visualization utilities using Plotly for exploratory data analysis charts.
 
 This module provides functions to create professional, interactive charts for
 statistical process control and quality analysis, optimized for web display
@@ -781,7 +781,7 @@ def create_probability_plot_chart(theoretical_quantiles: np.ndarray,
 
 
 def create_multi_chart_dashboard(charts: Dict[str, str], 
-                                title: str = "Statistical Analysis Dashboard") -> str:
+                                title: str = "Exploratory Data Analysis Dashboard") -> str:
     """Create a dashboard combining multiple charts in a single HTML page.
     
     Args:
@@ -832,7 +832,7 @@ def create_multi_chart_dashboard(charts: Dict[str, str],
         <body>
             <div class="dashboard-header">
                 <h1>{title}</h1>
-                <p>Interactive Statistical Analysis Dashboard</p>
+                <p>Interactive Exploratory Data Analysis Dashboard</p>
             </div>
         """
     ]

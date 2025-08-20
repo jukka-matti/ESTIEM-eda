@@ -1,5 +1,5 @@
 """
-ESTIEM EDA Toolkit - Browser Statistical Analysis Tools
+ESTIEM EDA Toolkit - Browser Exploratory Data Analysis Tools
 Pure NumPy/SciPy implementation for reliable browser execution
 """
 

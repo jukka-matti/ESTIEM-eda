@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ESTIEM EDA Toolkit - Quick Analysis Examples
-Demonstrate streamlined statistical analysis workflows
+Demonstrate streamlined exploratory data analysis workflows
 """
 
 from estiem_eda import QuickEDA, generate_sample_data, quick_i_chart, quick_capability, quick_pareto

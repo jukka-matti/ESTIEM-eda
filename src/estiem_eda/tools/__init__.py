@@ -1,1 +1,1 @@
-"""Statistical analysis tools for ESTIEM EDA toolkit"""
+"""Exploratory data analysis tools for ESTIEM EDA toolkit"""

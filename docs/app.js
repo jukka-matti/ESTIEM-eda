@@ -1,6 +1,6 @@
 /**
  * ESTIEM EDA Toolkit - Web Application
- * Browser-based statistical analysis with Pyodide
+ * Browser-based exploratory data analysis with Pyodide
  */
 
 // Global variables
@@ -35,7 +35,7 @@ async function initializeApp() {
         updateProgress(60);
         
         // Load our statistical tools
-        showLoading('Loading ESTIEM Tools...', 'Preparing statistical analysis functions');
+        showLoading('Loading ESTIEM Tools...', 'Preparing exploratory data analysis functions');
         const response = await fetch('eda_tools.py');
         const pythonCode = await response.text();
         pyodide.runPython(pythonCode);
@@ -577,7 +577,7 @@ function shareResults() {
     if (navigator.share) {
         navigator.share({
             title: 'ESTIEM EDA Analysis Results',
-            text: 'Check out my statistical analysis results!',
+            text: 'Check out my exploratory data analysis results!',
             url: shareUrl
         });
     } else {
@@ -651,7 +651,7 @@ function getAnalysisTitle(type) {
         'pareto': 'Pareto Analysis',
         'probability_plot': 'Probability Plot'
     };
-    return titles[type] || 'Statistical Analysis';
+    return titles[type] || 'Exploratory Data Analysis';
 }
 
 function formatLabel(key) {

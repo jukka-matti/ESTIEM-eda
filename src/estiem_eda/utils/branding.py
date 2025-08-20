@@ -68,7 +68,7 @@ def add_estiem_footer(fig: go.Figure,
     
     Args:
         fig: Plotly figure
-        analysis_type: Type of statistical analysis
+        analysis_type: Type of exploratory data analysis
         sample_size: Number of data points (optional)
         
     Returns:
