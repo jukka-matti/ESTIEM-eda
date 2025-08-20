@@ -105,48 +105,122 @@ The Streamlined ESTIEM EDA MCP Server provides professional Six Sigma tools with
     "data": {
       "type": "array",
       "items": {"type": "number"},
-      "description": "Array of numerical measurements for control chart analysis",
-      "minItems": 3,
+      "description": "Array of measurement values for comprehensive process analysis",
+      "minItems": 10,
       "maxItems": 10000
     },
     "title": {
       "type": "string",
-      "description": "Optional title for the control chart",
-      "maxLength": 100
+      "description": "Optional title for the analysis",
+      "default": "Process Analysis"
     },
     "specification_limits": {
       "type": "object",
       "properties": {
         "lsl": {"type": "number", "description": "Lower specification limit"},
-        "usl": {"type": "number", "description": "Upper specification limit"}
-      }
+        "usl": {"type": "number", "description": "Upper specification limit"},
+        "target": {"type": "number", "description": "Target value (optional, defaults to midpoint of LSL/USL)"}
+      },
+      "description": "Specification limits for capability analysis",
+      "anyOf": [
+        {"required": ["lsl", "usl"]},
+        {"required": ["lsl"]},
+        {"required": ["usl"]}
+      ]
+    },
+    "distribution": {
+      "type": "string",
+      "enum": ["normal", "lognormal", "exponential", "weibull"],
+      "description": "Distribution type for probability plot analysis",
+      "default": "normal"
+    },
+    "confidence_level": {
+      "type": "number",
+      "minimum": 0.8,
+      "maximum": 0.99,
+      "description": "Confidence level for statistical tests",
+      "default": 0.95
     }
   },
   "required": ["data"]
 }
 ```
 
-#### Enhanced Response Format
+#### Response Format
 ```json
 {
   "success": true,
-  "analysis_type": "i_chart",
-  "statistics": {
-    "sample_size": 9,
-    "mean": 9.922222222222224,
-    "sigma_hat": 0.8865248226950357,
-    "ucl": 12.581796690307332,
-    "lcl": 7.262647754137117,
-    "out_of_control_points": 0,
-    "western_electric_violations": [
-      {
-        "rule": 3,
-        "description": "4 out of 5 points beyond 1-sigma",
-        "points": [0, 1, 2, 3, 4]
-      }
+  "analysis_type": "process_analysis",
+  "process_summary": {
+    "sample_size": 50,
+    "measurement_range": {
+      "minimum": 9.7,
+      "maximum": 10.3,
+      "mean": 10.012,
+      "std_dev": 0.156
+    }
+  },
+  "stability_analysis": {
+    "type": "i_chart",
+    "statistics": {
+      "mean": 10.012,
+      "sigma_hat": 0.156,
+      "ucl": 10.480,
+      "lcl": 9.544,
+      "out_of_control_points": 0
+    },
+    "out_of_control_indices": [],
+    "control_status": "in_control"
+  },
+  "capability_analysis": {
+    "type": "capability",
+    "statistics": {
+      "mean": 10.012,
+      "std_dev": 0.156,
+      "process_spread": 0.936
+    },
+    "capability_indices": {
+      "cp": 1.068,
+      "cpk": 1.051,
+      "cpm": 1.045,
+      "pp": 1.064,
+      "ppk": 1.047
+    },
+    "defect_analysis": {
+      "ppm_total": 45.2,
+      "sigma_level": 4.8
+    },
+    "specification_limits": {
+      "lsl": 9.5,
+      "usl": 10.5,
+      "target": 10.0
+    }
+  },
+  "distribution_analysis": {
+    "type": "probability_plot",
+    "distribution": "normal",
+    "statistics": {
+      "mean": 10.012,
+      "std_dev": 0.156
+    },
+    "goodness_of_fit": {
+      "test_statistic": 0.142,
+      "p_value": 0.876,
+      "is_normal": true
+    },
+    "theoretical_quantiles": [/* array */],
+    "sorted_values": [/* array */]
+  },
+  "overall_assessment": {
+    "stability_status": "in_control",
+    "capability_status": "capable",
+    "distribution_status": "fits_assumed",
+    "overall_status": "excellent",
+    "recommendations": [
+      "Continue monitoring with control charts",
+      "Maintain current performance levels"
     ]
   },
-  "out_of_control_indices": [],
   "data_points": [10.0, 11.0, 11.3, 9.0, 8.0, 9.0, 9.5, 10.1, 11.4],
   "interpretation": "Process shows Western Electric rule violations indicating potential instability",
   "visualization_formats": {
@@ -210,92 +284,10 @@ The Streamlined ESTIEM EDA MCP Server provides professional Six Sigma tools with
 }
 ```
 
-### 2. Process Capability Analysis
-
-**Tool Name**: `process_capability`  
-**Description**: Process capability analysis with Cp, Cpk indices and Six Sigma levels.
-
-#### Input Schema
-```json
-{
-  "type": "object",
-  "properties": {
-    "data": {
-      "type": "array", 
-      "items": {"type": "number"},
-      "description": "Array of numerical measurements for capability analysis",
-      "minItems": 30,
-      "maxItems": 10000
-    },
-    "lsl": {
-      "type": "number",
-      "description": "Lower Specification Limit"
-    },
-    "usl": {
-      "type": "number", 
-      "description": "Upper Specification Limit"
-    },
-    "target": {
-      "type": "number",
-      "description": "Target value (optional, defaults to center of spec limits)"
-    },
-    "title": {
-      "type": "string",
-      "description": "Optional title for the capability chart",
-      "maxLength": 100
-    }
-  },
-  "required": ["data", "lsl", "usl"]
-}
-```
-
-#### Response Format
-```json
-{
-  "success": true,
-  "analysis_type": "process_capability",
-  "statistics": {
-    "sample_size": 100,
-    "mean": 10.05,
-    "std_dev": 0.85,
-    "cp": 1.96,
-    "cpk": 1.89,
-    "cpm": 1.84,
-    "pp": 1.94,
-    "ppk": 1.87,
-    "six_sigma_level": 5.67,
-    "defect_rate_ppm": 0.32,
-    "specification_limits": {
-      "lsl": 7.5,
-      "usl": 12.5,
-      "target": 10.0
-    }
-  },
-  "capability_assessment": {
-    "cp_interpretation": "Excellent capability (Cp > 1.67)",
-    "cpk_interpretation": "Process well-centered and capable",
-    "overall_rating": "Excellent"
-  },
-  "visualization_formats": {
-    "html_plotly": "/* Histogram with normal curve and spec limits */",
-    "artifact_data": {
-      "react": "/* React histogram component */",
-      "html": "/* Standalone HTML histogram */"
-    },
-    "chart_config": {
-      "type": "histogram",
-      "data": [/* Histogram data */],
-      "layout": {/* Layout config */}
-    },
-    "fallback_text": "Capability Analysis:\nCp: 1.96 (Excellent)\nCpk: 1.89 (Excellent)\n6σ Level: 5.67"
-  }
-}
-```
-
-### 3. ANOVA with Boxplot
+### 2. ANOVA with Boxplot
 
 **Tool Name**: `anova_boxplot`  
-**Description**: One-way ANOVA for comparing group means with post-hoc analysis.
+**Description**: One-way ANOVA for comparing group means with statistical significance testing.
 
 #### Input Schema
 ```json
@@ -304,12 +296,14 @@ The Streamlined ESTIEM EDA MCP Server provides professional Six Sigma tools with
   "properties": {
     "groups": {
       "type": "object",
-      "description": "Dictionary with group names as keys and data arrays as values",
-      "additionalProperties": {
-        "type": "array",
-        "items": {"type": "number"},
-        "minItems": 2,
-        "maxItems": 1000
+      "description": "Groups with their corresponding data values",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "array",
+          "items": {"type": "number"},
+          "minItems": 3,
+          "description": "Array of numeric values for this group"
+        }
       },
       "minProperties": 2,
       "maxProperties": 20
@@ -317,13 +311,13 @@ The Streamlined ESTIEM EDA MCP Server provides professional Six Sigma tools with
     "alpha": {
       "type": "number",
       "minimum": 0.001,
-      "maximum": 0.1,
-      "default": 0.05,
-      "description": "Significance level (default 0.05)"
+      "maximum": 0.2,
+      "description": "Significance level for ANOVA test",
+      "default": 0.05
     },
     "title": {
-      "type": "string", 
-      "description": "Optional title for the boxplot",
+      "type": "string",
+      "description": "Optional title for the analysis",
       "maxLength": 100
     }
   },
@@ -337,52 +331,142 @@ The Streamlined ESTIEM EDA MCP Server provides professional Six Sigma tools with
   "success": true,
   "analysis_type": "anova_boxplot",
   "anova_results": {
-    "f_statistic": 15.67,
-    "p_value": 0.0001,
-    "degrees_freedom": [2, 27],
-    "sum_squares": {
-      "between": 234.5,
-      "within": 123.8,
-      "total": 358.3
+    "f_statistic": 12.45,
+    "p_value": 0.0023,
+    "degrees_of_freedom": {
+      "between_groups": 2,
+      "within_groups": 27,
+      "total": 29
     },
-    "mean_squares": {
-      "between": 117.25,
-      "within": 4.59
+    "significant": true,
+    "alpha": 0.05
+  },
+  "group_statistics": {
+    "Group_A": {
+      "count": 10,
+      "mean": 9.85,
+      "std_dev": 0.42,
+      "variance": 0.18
     },
-    "effect_size": {
-      "eta_squared": 0.537,
-      "omega_squared": 0.498
+    "Group_B": {
+      "count": 10,
+      "mean": 10.45,
+      "std_dev": 0.38,
+      "variance": 0.14
+    },
+    "Group_C": {
+      "count": 10,
+      "mean": 10.12,
+      "std_dev": 0.35,
+      "variance": 0.12
     }
   },
   "post_hoc_analysis": {
-    "method": "Tukey HSD",
+    "method": "tukey_hsd",
     "pairwise_comparisons": [
       {
-        "groups": ["Group A", "Group B"],
-        "mean_difference": 2.34,
-        "p_value": 0.012,
+        "groups": ["Group_A", "Group_B"],
+        "mean_difference": -0.60,
+        "p_value": 0.0015,
         "significant": true
       }
     ]
   },
-  "group_statistics": {
-    "Group A": {"mean": 12.3, "std": 2.1, "n": 10},
-    "Group B": {"mean": 9.96, "std": 1.8, "n": 10},
-    "Group C": {"mean": 11.5, "std": 2.3, "n": 10}
-  },
-  "interpretation": "Significant differences between groups (p < 0.001)",
+  "interpretation": "Significant difference found between groups (F=12.45, p=0.0023). Post-hoc analysis shows Group_A differs significantly from Group_B.",
   "visualization_formats": {
-    "html_plotly": "/* Interactive boxplot with ANOVA results */",
-    "artifact_data": {
-      "react": "/* React boxplot component */",
-      "html": "/* Standalone HTML boxplot */"
+    "html_plotly": "/* Boxplot with ANOVA results */",
+    "fallback_text": "ANOVA Results: F=12.45, p=0.0023 (Significant)\nGroup means: A=9.85, B=10.45, C=10.12"
+  }
+}
+```
+
+### 3. Pareto Analysis
+
+**Tool Name**: `pareto_analysis`  
+**Description**: Pareto analysis for vital few identification using the 80/20 principle.
+
+#### Input Schema
+```json
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "description": "Categories with their corresponding values",
+      "patternProperties": {
+        "^.+$": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Numeric value for this category"
+        }
+      },
+      "minProperties": 2,
+      "maxProperties": 50
     },
-    "chart_config": {
-      "type": "boxplot",
-      "data": [/* Boxplot data for each group */],
-      "layout": {/* Layout with ANOVA results annotation */}
+    "threshold": {
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 0.99,
+      "description": "Cumulative percentage threshold for vital few identification",
+      "default": 0.8
     },
-    "fallback_text": "ANOVA Results:\nF(2,27) = 15.67, p < 0.001\nSignificant differences detected"
+    "title": {
+      "type": "string",
+      "description": "Optional title for the analysis",
+      "maxLength": 100
+    }
+  },
+  "required": ["data"]
+}
+```
+
+#### Response Format
+```json
+{
+  "success": true,
+  "analysis_type": "pareto_analysis",
+  "categories": [
+    {
+      "name": "Surface Defects",
+      "value": 450,
+      "percentage": 45.0,
+      "cumulative_percentage": 45.0
+    },
+    {
+      "name": "Dimensional Issues", 
+      "value": 320,
+      "percentage": 32.0,
+      "cumulative_percentage": 77.0
+    },
+    {
+      "name": "Assembly Problems",
+      "value": 180,
+      "percentage": 18.0,
+      "cumulative_percentage": 95.0
+    },
+    {
+      "name": "Material Defects",
+      "value": 50,
+      "percentage": 5.0,
+      "cumulative_percentage": 100.0
+    }
+  ],
+  "vital_few": {
+    "threshold": 0.8,
+    "count": 2,
+    "categories": ["Surface Defects", "Dimensional Issues"],
+    "contribution_percent": 77.0,
+    "total_value": 770
+  },
+  "summary": {
+    "total_value": 1000,
+    "total_categories": 4,
+    "vital_few_ratio": "50% of categories contribute to 77% of problems"
+  },
+  "interpretation": "2 categories (Surface Defects, Dimensional Issues) represent 77% of total defects, following the 80/20 principle.",
+  "visualization_formats": {
+    "html_plotly": "/* Pareto chart with bars and cumulative line */",
+    "fallback_text": "Pareto Analysis:\n1. Surface Defects: 450 (45%)\n2. Dimensional Issues: 320 (32%)\nVital Few: 2 categories = 77% of problems"
   }
 }
 ```
