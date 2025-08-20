@@ -4,7 +4,7 @@ ESTIEM EDA Toolkit - Quick Analysis Examples
 Demonstrate streamlined exploratory data analysis workflows
 """
 
-from estiem_eda import QuickEDA, generate_sample_data, quick_i_chart, quick_capability, quick_pareto
+from estiem_eda import QuickEDA, generate_sample_data, quick_process_analysis, quick_anova, quick_pareto
 import pandas as pd
 import numpy as np
 
@@ -50,11 +50,20 @@ print("-" * 30)
 # Direct analysis without loading data
 measurements = np.random.normal(10.0, 0.5, 50)
 
-# Quick I-Chart
-i_results = quick_i_chart(measurements, "Quick Process Control")
+# Quick Process Analysis (I-Chart + Capability + Distribution)
+process_results = quick_process_analysis(
+    measurements, 
+    lsl=9.0, usl=11.0, target=10.0,
+    title="Quick Process Control"
+)
 
-# Quick Capability
-cap_results = quick_capability(measurements, lsl=9.0, usl=11.0, target=10.0)
+# Quick ANOVA
+groups = {
+    'Line_A': [9.8, 10.2, 9.9, 10.1],
+    'Line_B': [10.1, 10.3, 10.0, 10.4], 
+    'Line_C': [9.7, 9.9, 9.8, 10.0]
+}
+anova_results = quick_anova(groups)
 
 # Quick Pareto
 defects = {'Surface': 45, 'Dimensional': 32, 'Assembly': 18, 'Material': 12, 'Other': 8}
@@ -63,11 +72,11 @@ pareto_results = quick_pareto(defects)
 print("\n🎯 Example 4: Chain Analysis")
 print("-" * 30)
 
-# Fluent interface
+# Fluent interface with new tools
 results = (QuickEDA()
           .load_data(manufacturing_data)
           .preview(2)
-          .i_chart('measurement')
+          .process_analysis('measurement', lsl=9.0, usl=11.0)
           )
 
 print("\n✅ All examples completed!")

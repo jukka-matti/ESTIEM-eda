@@ -274,14 +274,13 @@ estiem-eda/
 │   │   ├── visualization_response.py  # ⭐ Multi-format system
 │   │   ├── format_generators.py       # ⭐ HTML/text generators
 │   │   └── simplified_visualization.py # Reliable chart system
-│   ├── tools/                   # MCP protocol tools
-│   │   ├── i_chart.py          # Individual control charts
-│   │   ├── capability.py       # Process capability analysis
-│   │   ├── anova.py           # ANOVA with box plots
-│   │   ├── pareto.py          # Pareto analysis (80/20 rule)
-│   │   └── probability_plot.py # Distribution assessment
-│   ├── mcp_server.py           # Claude Desktop integration
-│   ├── cli.py                  # Command line interface  
+│   ├── tools/                   # 3 Core Professional Tools
+│   │   ├── process_analysis.py  # 🔬 Unified process assessment (I-Chart + Capability + Distribution)
+│   │   ├── anova.py            # 📊 ANOVA with box plots and group comparison
+│   │   ├── pareto.py           # 📉 Pareto analysis (80/20 rule) with priority ranking
+│   │   └── enhanced_base.py    # Simplified base class for streamlined tools
+│   ├── mcp_server.py           # Claude Desktop integration (3.0.0)
+│   ├── cli.py                  # Command line interface (streamlined)
 │   └── quick_analysis.py       # Python package interface
 ├── docs/                       # 🌐 Web application
 │   ├── index.html             # Web app with CDN fallback

@@ -38,8 +38,8 @@ class ESTIEMMCPServer:
         self.protocol_version = "2025-06-18"
         self.server_info = {
             "name": "estiem-eda",
-            "version": "2.1.0",
-            "description": "Statistical Process Control tools with reliable HTML visualization"
+            "version": "3.0.0",
+            "description": "Professional Six Sigma toolkit with 3 core analysis tools"
         }
         self.setup_logging()
         self.initialize_tools()
@@ -55,32 +55,25 @@ class ESTIEMMCPServer:
         self.logger.info("ESTIEM EDA MCP Server initializing...")
     
     def initialize_tools(self) -> None:
-        """Import and initialize all statistical tools."""
-        # Import tools dynamically to handle missing implementations gracefully
+        """Initialize the 3 core professional statistical tools."""
         self.tools = {}
         
-        try:
-            from .tools.process_analysis import ProcessAnalysisTool
-            self.tools["process_analysis"] = ProcessAnalysisTool()
-            self.logger.debug("Process Analysis tool loaded successfully")
-        except ImportError as e:
-            self.logger.warning(f"Process Analysis tool not available: {e}")
+        # Process Analysis Tool (comprehensive)
+        from .tools.process_analysis import ProcessAnalysisTool
+        self.tools["process_analysis"] = ProcessAnalysisTool()
+        self.logger.info("✅ Process Analysis tool loaded")
         
-        try:
-            from .tools.anova import ANOVATool
-            self.tools["anova_boxplot"] = ANOVATool()
-            self.logger.debug("ANOVA tool loaded successfully")
-        except ImportError as e:
-            self.logger.warning(f"ANOVA tool not available: {e}")
+        # ANOVA Tool (group comparison)
+        from .tools.anova import ANOVATool
+        self.tools["anova_boxplot"] = ANOVATool()
+        self.logger.info("✅ ANOVA Analysis tool loaded")
         
-        try:
-            from .tools.pareto import ParetoTool
-            self.tools["pareto_analysis"] = ParetoTool()
-            self.logger.debug("Pareto Analysis tool loaded successfully")
-        except ImportError as e:
-            self.logger.warning(f"Pareto Analysis tool not available: {e}")
+        # Pareto Tool (priority analysis)
+        from .tools.pareto import ParetoTool
+        self.tools["pareto_analysis"] = ParetoTool()
+        self.logger.info("✅ Pareto Analysis tool loaded")
         
-        self.logger.info(f"Initialized {len(self.tools)} statistical tools")
+        self.logger.info(f"🚀 Professional Six Sigma toolkit ready with {len(self.tools)} core tools")
     
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Route JSON-RPC requests to appropriate handlers.

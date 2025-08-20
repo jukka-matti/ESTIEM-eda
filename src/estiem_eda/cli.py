@@ -15,11 +15,8 @@ import csv
 from datetime import datetime
 
 from .core.calculations import (
-    calculate_i_chart,
-    calculate_process_capability,
     calculate_anova,
-    calculate_pareto,
-    calculate_probability_plot
+    calculate_pareto
 )
 from .core.validation import (
     validate_numeric_data,
@@ -291,15 +288,15 @@ cli = EstiemCLI()
 @click.pass_context
 def main(ctx, version):
     """
-    🏭 ESTIEM EDA Toolkit - Exploratory Data Analysis CLI
+    🏭 ESTIEM EDA Toolkit - Professional Six Sigma CLI
     
-    Perform exploratory data analysis from the command line.
-    Perfect for Industrial Engineering applications, quality control, and process improvement.
+    Professional Statistical Process Control analysis from the command line.
+    3 core tools for Industrial Engineering applications, quality control, and process improvement.
     
     Examples:
-      estiem-eda i-chart data.csv
-      estiem-eda capability data.csv --lsl 9.5 --usl 10.5
+      estiem-eda process-analysis data.csv --column measurement --lsl 9.5 --usl 10.5
       estiem-eda anova data.csv --value measurement --group line
+      estiem-eda pareto data.csv --category defect_type --value count
       
     🌐 Web Version: https://jukka-matti.github.io/ESTIEM-eda/
     """
@@ -316,70 +313,17 @@ def main(ctx, version):
 @main.command()
 @click.argument('data_file', type=click.Path(exists=True))
 @click.option('--column', '-c', help='Column name to analyze (default: first numeric column)')
-@click.option('--output', '-o', default='i_chart_results.html', help='Output file path')
-@click.option('--format', type=click.Choice(['html', 'json', 'txt']), default='html', help='Output format')
-@click.option('--title', help='Chart title')
-def i_chart(data_file, column, output, format, title):
-    """Create Individual Control Chart (I-Chart) for process monitoring."""
-    
-    click.echo("🏭 ESTIEM EDA - Individual Control Chart Analysis")
-    click.echo("=" * 50)
-    
-    # Load data
-    dataset = cli.load_data(data_file)
-    
-    # Get numeric data
-    if column:
-        # Extract specific column
-        data_values = [row[column] for row in dataset['data'] if isinstance(row.get(column), (int, float))]
-    else:
-        # Find first numeric column
-        for header in dataset['headers']:
-            data_values = [row[header] for row in dataset['data'] if isinstance(row.get(header), (int, float))]
-            if len(data_values) >= 3:
-                column = header
-                click.echo(f"🔍 Using column: {column}")
-                break
-        else:
-            click.echo("❌ No suitable numeric column found", err=True)
-            sys.exit(1)
-    
-    try:
-        # Validate and run analysis
-        values = validate_numeric_data(data_values, min_points=3)
-        results = calculate_i_chart(values, title or f'I-Chart Analysis: {data_file}')
-        
-        # Display summary
-        stats = results['statistics']
-        click.echo(f"\n📊 Results Summary:")
-        click.echo(f"   Sample Size: {stats['sample_size']}")
-        click.echo(f"   Process Mean: {stats['mean']:.4f}")
-        click.echo(f"   UCL: {stats['ucl']:.4f}")
-        click.echo(f"   LCL: {stats['lcl']:.4f}")
-        click.echo(f"   Out of Control: {stats['out_of_control_points']} points")
-        
-        click.echo(f"\n🎯 {results['interpretation']}")
-        
-        # Save results
-        cli.save_results(results, output, format)
-            
-    except Exception as e:
-        click.echo(f"❌ Error: {e}", err=True)
-        sys.exit(1)
-
-
-@main.command()
-@click.argument('data_file', type=click.Path(exists=True))
-@click.option('--lsl', type=float, required=True, help='Lower Specification Limit')
-@click.option('--usl', type=float, required=True, help='Upper Specification Limit')
+@click.option('--lsl', type=float, help='Lower Specification Limit (optional)')
+@click.option('--usl', type=float, help='Upper Specification Limit (optional)')
 @click.option('--target', type=float, help='Target value (optional)')
-@click.option('--column', '-c', help='Column name to analyze')
-@click.option('--output', '-o', default='capability_results.html', help='Output file path')
+@click.option('--distribution', type=click.Choice(['normal', 'lognormal', 'exponential', 'weibull']), default='normal', help='Distribution type')
+@click.option('--output', '-o', default='process_analysis_results.html', help='Output file path')
 @click.option('--format', type=click.Choice(['html', 'json', 'txt']), default='html', help='Output format')
-def capability(data_file, lsl, usl, target, column, output, format):
-    """Process Capability Analysis (Cp, Cpk, Six Sigma level)."""
+@click.option('--title', help='Analysis title')
+def process_analysis(data_file, column, lsl, usl, target, distribution, output, format, title):
+    """Comprehensive Process Analysis: stability (I-Chart), capability (Cp/Cpk), and distribution assessment."""
     
-    click.echo("🎯 ESTIEM EDA - Process Capability Analysis")
+    click.echo("🔬 ESTIEM EDA - Comprehensive Process Analysis")
     click.echo("=" * 50)
     
     # Load data
@@ -402,28 +346,70 @@ def capability(data_file, lsl, usl, target, column, output, format):
             sys.exit(1)
     
     try:
-        # Validate and run analysis
+        # Validate data
         values = validate_numeric_data(data_values, min_points=10)
-        results = calculate_process_capability(values, lsl, usl, target)
+        
+        # Create arguments for process analysis
+        arguments = {
+            'data': values,
+            'title': title or f'Process Analysis: {column}',
+            'distribution': distribution
+        }
+        
+        # Add specification limits if provided
+        if lsl is not None or usl is not None:
+            spec_limits = {}
+            if lsl is not None:
+                spec_limits['lsl'] = lsl
+            if usl is not None:
+                spec_limits['usl'] = usl
+            if target is not None:
+                spec_limits['target'] = target
+            arguments['specification_limits'] = spec_limits
+        
+        # Import and execute process analysis tool
+        from .tools.process_analysis import ProcessAnalysisTool
+        tool = ProcessAnalysisTool()
+        results = tool.analyze(arguments)
         
         # Display summary
-        stats = results['capability_indices']
-        click.echo(f"\n📊 Capability Results:")
-        click.echo(f"   Cp:  {stats['cp']:.4f}")
-        click.echo(f"   Cpk: {stats['cpk']:.4f}")
+        summary = results.get('process_summary', {})
+        click.echo(f"\n📊 Process Summary:")
+        click.echo(f"   Sample Size: {summary.get('sample_size', 0)}")
+        if 'measurement_range' in summary:
+            range_info = summary['measurement_range']
+            click.echo(f"   Mean: {range_info.get('mean', 0):.4f}")
+            click.echo(f"   Std Dev: {range_info.get('std_dev', 0):.4f}")
         
-        defects = results['defect_analysis']
-        click.echo(f"   Expected Defects: {defects['ppm_total']:.0f} PPM")
-        click.echo(f"   Sigma Level: {defects['sigma_level']:.1f}")
+        # Stability status
+        stability = results.get('stability_analysis', {})
+        click.echo(f"   Stability: {stability.get('control_status', 'unknown').replace('_', ' ').title()}")
         
-        click.echo(f"\n🎯 {results['interpretation']}")
+        # Capability status if available
+        capability = results.get('capability_analysis', {})
+        if 'capability_indices' in capability:
+            indices = capability['capability_indices']
+            click.echo(f"   Cpk: {indices.get('cpk', 0):.4f}")
+        
+        # Overall interpretation
+        if 'interpretation' in results:
+            click.echo(f"\n🎯 {results['interpretation']}")
         
         # Save results
+        results['analysis_type'] = 'process_analysis'
         cli.save_results(results, output, format)
-        
+            
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         sys.exit(1)
+
+
+# Legacy individual tool commands removed
+# Use process-analysis command for comprehensive analysis including I-Chart functionality
+
+
+# Legacy capability command removed
+# Use process-analysis command for comprehensive analysis including capability functionality
 
 
 @main.command()
@@ -554,60 +540,8 @@ def pareto(data_file, category, value, output, format):
         sys.exit(1)
 
 
-@main.command()
-@click.argument('data_file', type=click.Path(exists=True))
-@click.option('--column', '-c', help='Column name to analyze')
-@click.option('--distribution', type=click.Choice(['normal', 'lognormal', 'weibull']), default='normal', help='Distribution type')
-@click.option('--output', '-o', default='probability_results.html', help='Output file path')
-@click.option('--format', type=click.Choice(['html', 'json', 'txt']), default='html', help='Output format')
-def probability(data_file, column, distribution, output, format):
-    """Probability Plot for assessing distribution fit with confidence intervals."""
-    
-    click.echo("📋 ESTIEM EDA - Probability Plot Analysis")
-    click.echo("=" * 50)
-    
-    # Load data
-    dataset = cli.load_data(data_file)
-    
-    # Get numeric data
-    if column:
-        # Extract specific column
-        data_values = [row[column] for row in dataset['data'] if isinstance(row.get(column), (int, float))]
-    else:
-        # Find first numeric column
-        for header in dataset['headers']:
-            data_values = [row[header] for row in dataset['data'] if isinstance(row.get(header), (int, float))]
-            if len(data_values) >= 3:
-                column = header
-                click.echo(f"🔍 Using column: {column}")
-                break
-        else:
-            click.echo("❌ No suitable numeric column found", err=True)
-            sys.exit(1)
-    
-    try:
-        # Validate and run analysis
-        values = validate_numeric_data(data_values, min_points=3)
-        results = calculate_probability_plot(values, distribution)
-        
-        # Display summary
-        stats = results['goodness_of_fit']
-        click.echo(f"\n📊 Probability Plot Results:")
-        click.echo(f"   Distribution: {distribution.title()}")
-        click.echo(f"   Correlation: {stats['correlation_coefficient']:.4f}")
-        click.echo(f"   Fit Quality: {stats['interpretation']}")
-        
-        outliers = results['outliers']
-        click.echo(f"   Outliers: {outliers['count']} detected")
-        
-        click.echo(f"\n🎯 {results['interpretation']}")
-        
-        # Save results
-        cli.save_results(results, output, format)
-        
-    except Exception as e:
-        click.echo(f"❌ Error: {e}", err=True)
-        sys.exit(1)
+# Legacy probability plot command removed  
+# Use process-analysis command for comprehensive analysis including distribution assessment
 
 
 @main.command()
@@ -700,14 +634,12 @@ def info():
     """Show information about ESTIEM EDA Toolkit."""
     
     click.echo("""
-🏭 ESTIEM EDA Toolkit - Exploratory Data Analysis
+🏭 ESTIEM EDA Toolkit - Professional Six Sigma Analysis
 
-📊 Available Tools:
-   • I-Chart        - Individual control charts for process monitoring
-   • Capability     - Process capability analysis (Cp, Cpk, Six Sigma)
-   • ANOVA          - One-way analysis of variance with post-hoc tests
-   • Pareto         - 80/20 rule analysis for root cause identification  
-   • Probability    - Distribution assessment with confidence intervals
+📊 3 Core Professional Tools:
+   • Process Analysis - Comprehensive process assessment (I-Chart + Capability + Distribution)
+   • ANOVA Analysis   - One-way analysis of variance with post-hoc tests and boxplots
+   • Pareto Analysis  - 80/20 rule analysis for vital few identification and root cause analysis
 
 🌐 Web Application: https://jukka-matti.github.io/ESTIEM-eda/
    - Zero installation required
@@ -723,9 +655,9 @@ def info():
 
 📚 Examples:
    estiem-eda sample-data --type manufacturing
-   estiem-eda i-chart sample_data.csv
-   estiem-eda capability data.csv --lsl 9.5 --usl 10.5
+   estiem-eda process-analysis data.csv --column measurement --lsl 9.5 --usl 10.5
    estiem-eda anova data.csv --value measurement --group line
+   estiem-eda pareto data.csv --category defect_type --value count
 
 🤝 About ESTIEM:
    European Students of Technology in Engineering and Management

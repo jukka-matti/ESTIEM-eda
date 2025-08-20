@@ -42,17 +42,22 @@
 ├─────────────────────────────────┼──────────────────────────────────┤
 │                                 │                                  │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │                CORE STATISTICAL ENGINE                     │   │
+│  │          STREAMLINED STATISTICAL ENGINE (3 CORE TOOLS)     │   │
 │  │                                                             │   │
-│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌────────┐ │   │
-│  │  │   I-Chart   │ │ Capability  │ │   ANOVA     │ │ Pareto │ │   │
-│  │  │   Analysis  │ │   Analysis  │ │   Analysis  │ │Analysis│ │   │
-│  │  └─────────────┘ └─────────────┘ └─────────────┘ └────────┘ │   │
+│  │  ┌──────────────────────┐ ┌─────────────┐ ┌────────────────┐ │   │
+│  │  │   Process Analysis   │ │   ANOVA     │ │ Pareto Analysis│ │   │
+│  │  │ ┌─────────────────┐  │ │   Analysis  │ │     (80/20)    │ │   │
+│  │  │ │ I-Chart (Stab.) │  │ │             │ │                │ │   │
+│  │  │ │ Capability (Cp) │  │ │ Multi-Group │ │ Priority ID &  │ │   │
+│  │  │ │ Probability Plot│  │ │ Comparison  │ │ Root Cause     │ │   │
+│  │  │ └─────────────────┘  │ │             │ │                │ │   │
+│  │  └──────────────────────┘ └─────────────┘ └────────────────┘ │   │
 │  │                                                             │   │
-│  │  ┌─────────────┐ ┌─────────────────────────────────────────┐ │   │
-│  │  │Probability  │ │          Visualization Engine           │ │   │
-│  │  │   Plot      │ │     (Plotly + ESTIEM Branding)          │ │   │
-│  │  └─────────────┘ └─────────────────────────────────────────┘ │   │
+│  │  ┌─────────────────────────────────────────────────────────┐ │   │
+│  │  │          Visualization Engine (Plotly + ESTIEM)        │ │   │
+│  │  │   • Interactive Charts  • Professional Branding        │ │   │
+│  │  │   • Cross-Platform      • Six Sigma Methodology        │ │   │
+│  │  └─────────────────────────────────────────────────────────┘ │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -125,35 +130,36 @@ Format Generators
     └── Narrative Descriptions
 ```
 
-### 2. Statistical Analysis Layer
+### 2. Streamlined Statistical Analysis Layer
 
 #### 2.1 Core Calculation Engine (`core/calculations.py`)
 ```python
-Statistical Calculations
-├── I-Chart Analysis
-│   ├── Control Limit Calculation
-│   ├── Western Electric Rules
-│   └── Process Capability
-│
-├── Process Capability
-│   ├── Cp/Cpk Calculations
-│   ├── Six Sigma Levels
-│   └── Distribution Fitting
+Streamlined Statistical Calculations (3 Core Tools)
+├── Process Analysis (Unified)
+│   ├── I-Chart Analysis
+│   │   ├── Control Limit Calculation
+│   │   ├── Western Electric Rules
+│   │   └── Stability Assessment
+│   ├── Process Capability
+│   │   ├── Cp/Cpk Calculations
+│   │   ├── Six Sigma Levels
+│   │   └── Specification Compliance
+│   └── Probability Plots
+│       ├── Distribution Fitting
+│       ├── Normal Testing
+│       └── Confidence Intervals
 │
 ├── ANOVA Analysis
 │   ├── One-Way ANOVA
 │   ├── Post-Hoc Testing
-│   └── Effect Size
+│   ├── Effect Size
+│   └── Group Comparisons
 │
-├── Pareto Analysis
-│   ├── Vital Few Identification
-│   ├── Cumulative Percentages
-│   └── Gini Coefficient
-│
-└── Probability Plots
-    ├── Normal Testing
-    ├── Distribution Fitting
-    └── Confidence Intervals
+└── Pareto Analysis
+    ├── Vital Few Identification (80/20)
+    ├── Cumulative Percentages
+    ├── Priority Ranking
+    └── Gini Coefficient
 ```
 
 #### 2.2 Validation System (`core/validation.py`)
@@ -190,12 +196,17 @@ Visualization System
 │   ├── Logo Integration
 │   └── Style Consistency
 │
-├── Chart Types
-│   ├── Control Charts
-│   ├── Histograms
-│   ├── Boxplots
-│   ├── Pareto Charts
-│   └── Probability Plots
+├── Chart Types (3 Core Visualizations)
+│   ├── Process Analysis Charts
+│   │   ├── I-Charts (Control Charts)
+│   │   ├── Capability Histograms
+│   │   └── Probability Plots
+│   ├── ANOVA Boxplots
+│   │   ├── Group Comparison Charts
+│   │   └── Statistical Significance
+│   └── Pareto Charts
+│       ├── Bar Charts with Cumulative Line
+│       └── Priority Rankings
 │
 └── Responsive Design
     ├── Mobile Optimization
@@ -450,11 +461,22 @@ Client Optimization
 
 #### 1. Unit Testing Layer
 ```python
-Unit Test Coverage
-├── Statistical Calculations
-│   ├── Mathematical Accuracy
-│   ├── Edge Case Handling
-│   └── Performance Benchmarks
+Unit Test Coverage (3 Core Tools)
+├── Process Analysis Tool
+│   ├── I-Chart Mathematical Accuracy
+│   ├── Capability Calculations (Cp/Cpk)
+│   ├── Probability Plot Algorithms
+│   └── Unified Workflow Integration
+│
+├── ANOVA Analysis Tool
+│   ├── Statistical Calculations
+│   ├── Post-Hoc Testing
+│   └── Boxplot Generation
+│
+├── Pareto Analysis Tool
+│   ├── Sorting and Ranking Logic
+│   ├── Cumulative Percentage Calculation
+│   └── Vital Few Identification
 │
 ├── Visualization Generation
 │   ├── Format Validation
@@ -615,8 +637,9 @@ Quality Assurance
 #### 3. Business Metrics
 ```python
 Usage Analytics
-├── Feature Usage
-│   ├── Tool Popularity
+├── Feature Usage (3 Core Tools)
+│   ├── Process Analysis Adoption
+│   ├── ANOVA vs Pareto Usage
 │   ├── Chart Type Preferences
 │   └── Platform Distribution
 │
@@ -661,7 +684,21 @@ Usage Analytics
 
 This technical architecture documentation provides the foundation for implementing the Enhanced MCP Server Response Format while maintaining system reliability, security, and performance across all deployment scenarios.
 
-**Document Version**: 1.0  
+**Document Version**: 2.0 (Streamlined 3-Tool Architecture)  
 **Last Updated**: August 20, 2025  
 **Architecture Review**: Quarterly  
 **Next Update**: November 20, 2025
+
+## 🚀 Version 2.0 Architecture Highlights
+
+### Streamlined Professional Toolkit
+- **Reduced Complexity**: From 6 individual tools to 3 core professional tools
+- **Unified Workflow**: Process Analysis combines stability, capability, and distribution analysis
+- **Enhanced User Experience**: Clearer tool selection and workflow guidance
+- **Maintained Functionality**: All statistical capabilities preserved in streamlined interface
+
+### Key Architectural Improvements
+- **ProcessAnalysisTool**: Unified Six Sigma workflow combining I-Chart, Capability, and Probability Plot
+- **Enhanced MCP Integration**: Optimized for Claude Desktop with simplified tool schema
+- **Professional UI**: Streamlined 3-tool grid with featured tool highlighting
+- **Consistent API**: Unified response format across all tools and platforms

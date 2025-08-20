@@ -913,22 +913,22 @@ The server automatically detects client capabilities from the MCP request contex
 ## 🔄 Version Compatibility
 
 ### API Versioning
-- **Current Version**: 2.0.0
-- **Backward Compatibility**: Supports 1.x responses for legacy clients
-- **Migration Path**: Automatic detection and conversion
-- **Deprecation Policy**: 12-month notice for breaking changes
+- **Current Version**: 3.0.0 (Streamlined 3-Tool Architecture)
+- **Architecture**: Clean break from legacy versions - no backward compatibility
+- **Focus**: Professional Six Sigma workflow with 3 core tools only
+- **Design**: Modern, streamlined API designed for optimal user experience
 
 ### Protocol Support
-- **MCP Protocol**: 2025-06-18 (primary)
-- **Fallback Support**: Earlier MCP versions with limited features
+- **MCP Protocol**: 2025-06-18 (latest specification)
 - **JSON-RPC**: 2.0 strict compliance
-- **Transport**: stdio (current), HTTP/SSE (future)
+- **Transport**: stdio (optimized for Claude Desktop integration)
+- **Response Format**: Modern HTML visualization with embedded Plotly charts
 
 ---
 
 This API specification serves as the definitive reference for integrating with the Enhanced ESTIEM EDA MCP Server, providing comprehensive statistical analysis with intelligent visualization adaptation.
 
-**Document Version**: 1.0  
-**API Version**: 2.0.0  
+**Document Version**: 3.0 (Streamlined Architecture)  
+**API Version**: 3.0.0  
 **Last Updated**: August 20, 2025  
 **Next Review**: November 20, 2025

@@ -26,25 +26,20 @@ def test_enhanced_mcp_server():
     # Test data for statistical analysis
     test_data = [10.0, 11.0, 11.3, 9.0, 8.0, 9.0, 9.5, 10.1, 11.4]
     
-    # Test each enhanced tool
+    # Test the 3 core professional tools
     tools_to_test = [
         {
-            "name": "i_chart",
-            "description": "I-Chart Analysis",
+            "name": "process_analysis",
+            "description": "Comprehensive Process Analysis",
             "params": {
-                "data": test_data,
-                "title": "Test I-Chart Analysis"
-            }
-        },
-        {
-            "name": "process_capability",
-            "description": "Process Capability Analysis",
-            "params": {
-                "data": test_data * 5,  # Need more data points
-                "lsl": 8.0,
-                "usl": 12.0,
-                "target": 10.0,
-                "title": "Test Capability Analysis"
+                "data": test_data * 5,  # Need more data points for reliable analysis
+                "specification_limits": {
+                    "lsl": 8.0,
+                    "usl": 12.0,
+                    "target": 10.0
+                },
+                "distribution": "normal",
+                "title": "Test Process Analysis"
             }
         },
         {
@@ -71,15 +66,6 @@ def test_enhanced_mcp_server():
                     "Other": 8
                 },
                 "title": "Test Pareto Analysis"
-            }
-        },
-        {
-            "name": "probability_plot",
-            "description": "Probability Plot Analysis",
-            "params": {
-                "data": test_data,
-                "distribution": "normal",
-                "title": "Test Probability Plot"
             }
         }
     ]
