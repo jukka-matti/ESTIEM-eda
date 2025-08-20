@@ -963,6 +963,23 @@ footer {
     color: #999;
 }
 
+.creator-attribution {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.creator-attribution a {
+    color: var(--estiem-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.creator-attribution a:hover {
+    color: var(--estiem-light);
+    text-decoration: underline;
+}
+
 .footer-links {
     display: flex;
     justify-content: center;

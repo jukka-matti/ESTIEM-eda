@@ -679,6 +679,10 @@ def info():
    Connecting students across 35+ countries for education and growth
    Learn more: https://estiem.org
 
+👨‍💻 Creator: Jukka-Matti Turtiainen
+   Lean Six Sigma Expert & Trainer
+   Website: https://www.rdmaic.com
+
 📄 License: Apache 2.0 - Free for educational use
     """)
 

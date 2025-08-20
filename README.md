@@ -220,6 +220,12 @@ Apache 2.0 - see [LICENSE](LICENSE) for details.
 
 [ESTIEM](https://estiem.org) connects 60,000+ Industrial Engineering students across Europe through education, conferences, and professional development.
 
+## 👨‍💻 Creator
+
+**Created by [Jukka-Matti Turtiainen](https://www.rdmaic.com)**
+- Lean Six Sigma Expert & Trainer
+- Website: [rdmaic.com](https://www.rdmaic.com)
+
 ---
 
 *Built by students, for students. Forever free for educational use.*
