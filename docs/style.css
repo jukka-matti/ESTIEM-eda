@@ -1,9 +1,9 @@
 /* ESTIEM EDA Toolkit - Modern Web Styles */
 
 :root {
-    --estiem-blue: #003f7f;
-    --estiem-light: #0066cc;
-    --estiem-green: #2E8B57;
+    --estiem-primary: #205e44;
+    --estiem-light: #2d7a56;
+    --estiem-accent: #1a4f38;
     --success: #28a745;
     --warning: #ffc107;
     --danger: #dc3545;
@@ -60,7 +60,7 @@ header .container {
 
 .logo-icon {
     font-size: 2rem;
-    background: linear-gradient(135deg, var(--estiem-blue), var(--estiem-light));
+    background: linear-gradient(135deg, var(--estiem-primary), var(--estiem-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -68,7 +68,7 @@ header .container {
 
 .logo h1 {
     font-size: 1.5rem;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     font-weight: 700;
 }
 
@@ -93,7 +93,7 @@ nav a {
 }
 
 nav a:hover {
-    color: var(--estiem-light);
+    color: var(--estiem-primary);
 }
 
 nav a::after {
@@ -103,7 +103,7 @@ nav a::after {
     left: 0;
     width: 0;
     height: 2px;
-    background: var(--estiem-light);
+    background: var(--estiem-primary);
     transition: var(--transition);
 }
 
@@ -113,7 +113,7 @@ nav a:hover::after {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, var(--estiem-blue), var(--estiem-light));
+    background: linear-gradient(135deg, var(--estiem-primary), var(--estiem-light));
     color: white;
     padding: 4rem 0;
     text-align: center;
@@ -189,7 +189,7 @@ nav a:hover::after {
 
 .btn-primary {
     background: white;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     border: none;
     padding: 1rem 2rem;
     border-radius: 50px;
@@ -219,7 +219,7 @@ nav a:hover::after {
 
 .btn-secondary:hover {
     background: white;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     transform: translateY(-2px);
 }
 
@@ -235,7 +235,7 @@ section {
 section h3 {
     font-size: 2rem;
     margin-bottom: 2rem;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     text-align: center;
 }
 
@@ -272,7 +272,7 @@ section h3 {
 .upload-area h4 {
     font-size: 1.3rem;
     margin-bottom: 0.5rem;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
 }
 
 .upload-area p {
@@ -345,7 +345,7 @@ section h3 {
 .data-table th {
     background: var(--light-gray);
     font-weight: 600;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
 }
 
 .data-table tr:hover {
@@ -362,7 +362,7 @@ section h3 {
 }
 
 .btn-small {
-    background: var(--estiem-light);
+    background: var(--estiem-primary);
     color: white;
     border: none;
     padding: 0.4rem 0.8rem;
@@ -434,7 +434,7 @@ section h3 {
 .tool-card h4 {
     font-size: 1.3rem;
     margin-bottom: 0.5rem;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
 }
 
 .tool-card p {
@@ -445,7 +445,7 @@ section h3 {
 
 .tool-badge {
     display: inline-block;
-    background: var(--estiem-light);
+    background: var(--estiem-primary);
     color: white;
     padding: 0.3rem 0.8rem;
     border-radius: 15px;
@@ -526,7 +526,7 @@ section h3 {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
 }
 
 .form-group input,
@@ -574,7 +574,7 @@ section h3 {
 }
 
 .results-header h3 {
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     margin: 0;
     text-align: left;
 }
@@ -614,7 +614,7 @@ section h3 {
 
 .stats-panel h4,
 .interpretation-panel h4 {
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     margin-bottom: 1rem;
     font-size: 1.1rem;
 }
@@ -639,7 +639,7 @@ section h3 {
     padding: 0.5rem 0;
     text-align: right;
     font-weight: 700;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
 }
 
 .interpretation-content {
@@ -661,7 +661,7 @@ section h3 {
 }
 
 .learn-link:hover {
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     text-decoration: underline;
 }
 
@@ -702,7 +702,7 @@ section h3 {
 }
 
 .loading-content h3 {
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     margin-bottom: 0.5rem;
 }
 
@@ -788,7 +788,7 @@ section h3 {
 }
 
 .learn-card h4 {
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     margin-bottom: 0.5rem;
     font-size: 1.2rem;
 }
@@ -817,7 +817,7 @@ section h3 {
 .dmaic-section h3 {
     text-align: center;
     margin-bottom: 2rem;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
 }
 
 .dmaic-steps {
@@ -840,7 +840,7 @@ section h3 {
 .step-number {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, var(--estiem-blue), var(--estiem-light));
+    background: linear-gradient(135deg, var(--estiem-primary), var(--estiem-light));
     color: white;
     border-radius: 50%;
     display: flex;
@@ -852,7 +852,7 @@ section h3 {
 }
 
 .dmaic-step h4 {
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     margin-bottom: 0.5rem;
 }
 
@@ -874,7 +874,7 @@ section h3 {
 }
 
 .about-text h2 {
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     margin-bottom: 1rem;
 }
 
@@ -916,7 +916,7 @@ section h3 {
 .stat-number {
     font-size: 2.5rem;
     font-weight: 800;
-    color: var(--estiem-blue);
+    color: var(--estiem-primary);
     display: block;
 }
 
@@ -991,7 +991,7 @@ footer {
 
 .cta-button {
     display: inline-block;
-    background: var(--estiem-light);
+    background: var(--estiem-primary);
     color: white;
     padding: 1rem 2rem;
     border-radius: 50px;
@@ -1136,7 +1136,7 @@ footer {
     
     .hero {
         background: white;
-        color: var(--estiem-blue);
+        color: var(--estiem-primary);
         padding: 2rem 0;
     }
     
