@@ -117,9 +117,44 @@ class BrowserCompatibleStats:
         return BrowserCompatibleStats.norm_cdf(z)
 
 
+# Helper function for JsProxy conversion
+def convert_js_to_python(obj):
+    """Convert JavaScript objects to Python equivalents in Pyodide."""
+    # Check if we're in a Pyodide environment and obj is a JsProxy
+    try:
+        # Try to access the pyodide module
+        import pyodide
+        if hasattr(pyodide.ffi, 'JsProxy') and isinstance(obj, pyodide.ffi.JsProxy):
+            # Convert JsProxy to Python object
+            return obj.to_py()
+    except (ImportError, AttributeError):
+        # Not in Pyodide or no JsProxy, return as-is
+        pass
+    return obj
+
+def safe_float_conversion(value):
+    """Safely convert a value to float, handling JsProxy objects."""
+    # First convert from JsProxy if needed
+    value = convert_js_to_python(value)
+    
+    # Handle string representations
+    if isinstance(value, str):
+        value = value.strip()
+        if value == '' or value.lower() in ['nan', 'null', 'undefined']:
+            return None
+    
+    try:
+        result = float(value)
+        return result if not (math.isnan(result) or math.isinf(result)) else None
+    except (ValueError, TypeError):
+        return None
+
 # Core validation functions
 def validate_numeric_data_browser(data: Any, min_points: int = 3) -> List[float]:
     """Validate numeric data for browser environment."""
+    # Convert JsProxy objects to Python first
+    data = convert_js_to_python(data)
+    
     # Handle various input formats
     if isinstance(data, dict):
         if 'data' in data:
@@ -138,37 +173,37 @@ def validate_numeric_data_browser(data: Any, min_points: int = 3) -> List[float]
         # Find first numeric column
         numeric_col = None
         for key in data[0].keys():
-            try:
-                float(data[0][key])
+            if safe_float_conversion(data[0][key]) is not None:
                 numeric_col = key
                 break
-            except (ValueError, TypeError):
-                continue
         
         if numeric_col is None:
             raise ValueError("No numeric columns found")
         
         values = []
         for row in data:
-            try:
-                val = float(row[numeric_col])
-                if not (math.isnan(val) or math.isinf(val)):
+            row = convert_js_to_python(row)
+            if numeric_col in row:
+                val = safe_float_conversion(row[numeric_col])
+                if val is not None:
                     values.append(val)
-            except (ValueError, TypeError, KeyError):
-                continue
         data = values
     
     # Convert to list of floats
     try:
         if np is not None:
-            values = np.array(data, dtype=float)
-            values = values[np.isfinite(values)]
-            values = values.tolist()
+            # Convert each item safely first
+            safe_data = []
+            for item in data:
+                val = safe_float_conversion(item)
+                if val is not None:
+                    safe_data.append(val)
+            values = safe_data
         else:
             values = []
             for item in data:
-                val = float(item)
-                if not (math.isnan(val) or math.isinf(val)):
+                val = safe_float_conversion(item)
+                if val is not None:
                     values.append(val)
     except (ValueError, TypeError) as e:
         raise ValueError(f"Cannot convert to numeric array: {e}")
@@ -181,6 +216,9 @@ def validate_numeric_data_browser(data: Any, min_points: int = 3) -> List[float]
 
 def validate_groups_data_browser(data: Dict[str, Any]) -> Dict[str, List[float]]:
     """Validate groups data for ANOVA."""
+    # Convert JsProxy objects to Python first
+    data = convert_js_to_python(data)
+    
     if not isinstance(data, dict) or len(data) < 2:
         raise ValueError("Need at least 2 groups")
     
@@ -197,6 +235,9 @@ def validate_groups_data_browser(data: Dict[str, Any]) -> Dict[str, List[float]]
 
 def validate_pareto_data_browser(data: Any) -> Dict[str, float]:
     """Validate Pareto data."""
+    # Convert JsProxy objects to Python first
+    data = convert_js_to_python(data)
+    
     # Handle list of records
     if isinstance(data, list) and data and isinstance(data[0], dict):
         first_row = data[0]
@@ -223,9 +264,11 @@ def validate_pareto_data_browser(data: Any) -> Dict[str, float]:
             # Sum values by category
             categories = {}
             for row in data:
+                row = convert_js_to_python(row)
                 cat = str(row[cat_col])
-                val = float(row[val_col])
-                categories[cat] = categories.get(cat, 0) + val
+                val = safe_float_conversion(row[val_col])
+                if val is not None:
+                    categories[cat] = categories.get(cat, 0) + val
             data = categories
     
     if not isinstance(data, dict) or not data:
@@ -233,13 +276,12 @@ def validate_pareto_data_browser(data: Any) -> Dict[str, float]:
     
     validated_data = {}
     for category, value in data.items():
-        try:
-            val = float(value)
-            if val < 0:
-                raise ValueError(f"Negative value: {val}")
-            validated_data[str(category)] = val
-        except (ValueError, TypeError):
-            raise ValueError(f"Invalid value for {category}")
+        val = safe_float_conversion(value)
+        if val is None:
+            raise ValueError(f"Invalid value for {category}: {value}")
+        if val < 0:
+            raise ValueError(f"Negative value for {category}: {val}")
+        validated_data[str(category)] = val
     
     if sum(validated_data.values()) == 0:
         raise ValueError("All values are zero")
