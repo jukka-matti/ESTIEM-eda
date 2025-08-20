@@ -3,11 +3,16 @@ ESTIEM EDA Toolkit - Python Statistical Analysis Tools
 Runs in browser via Pyodide for client-side statistical analysis
 """
 
-import numpy as np
-import pandas as pd
-from scipy import stats
-import json
-import math
+try:
+    import numpy as np
+    import pandas as pd
+    from scipy import stats
+    import json
+    import math
+    print("✅ All required packages imported successfully")
+except ImportError as e:
+    print(f"❌ Import error: {e}")
+    raise
 
 
 def generate_sample_data(sample_type):
@@ -136,7 +141,25 @@ def generate_sample_data(sample_type):
 def run_analysis(analysis_type, data, headers, parameters):
     """Main analysis dispatcher"""
     
-    df = pd.DataFrame(data)
+    try:
+        # Ensure data is properly formatted for DataFrame creation
+        if isinstance(data, str):
+            data = json.loads(data)
+        
+        # Handle different data formats
+        if isinstance(data, dict) and 'data' in data:
+            df = pd.DataFrame(data['data'])
+        elif isinstance(data, list) and len(data) > 0:
+            if isinstance(data[0], dict):
+                df = pd.DataFrame(data)
+            else:
+                # Simple list of values
+                df = pd.DataFrame({'values': data})
+        else:
+            df = pd.DataFrame(data)
+            
+    except Exception as e:
+        raise ValueError(f"Error creating DataFrame: {str(e)}")
     
     if analysis_type == 'i_chart':
         return create_i_chart(df, headers, parameters)
@@ -155,10 +178,13 @@ def run_analysis(analysis_type, data, headers, parameters):
 def create_i_chart(df, headers, parameters):
     """Create Individual Control Chart (I-Chart)"""
     
-    # Find numeric column (assume first numeric column is the measurement)
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    if len(numeric_cols) == 0:
-        raise ValueError('No numeric columns found for I-Chart analysis')
+    try:
+        # Find numeric column (assume first numeric column is the measurement)
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) == 0:
+            raise ValueError('No numeric columns found for I-Chart analysis')
+    except Exception as e:
+        raise ValueError(f'Error processing DataFrame: {str(e)}')
     
     measurement_col = numeric_cols[0]
     values = df[measurement_col].dropna().values
