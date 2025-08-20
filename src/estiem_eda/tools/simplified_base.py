@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional
 import logging
 
 from .base import BaseMCPTool
-from ..browser.core_browser import generate_sample_data_browser
+# from ..browser.core_browser import generate_sample_data_browser
 
 
 class SimplifiedMCPTool(BaseMCPTool):
@@ -240,4 +240,27 @@ class SimplifiedMCPTool(BaseMCPTool):
         Returns:
             Dictionary with sample data, headers, and filename
         """
-        return generate_sample_data_browser(sample_type)
+        import random
+        import numpy as np
+        
+        if sample_type == 'manufacturing':
+            data = np.random.normal(100, 5, 30).tolist()
+            return {
+                'data': data,
+                'headers': ['value'],
+                'filename': 'sample_manufacturing.csv'
+            }
+        elif sample_type == 'quality':
+            data = np.random.normal(50, 2, 25).tolist()
+            return {
+                'data': data,
+                'headers': ['measurement'],
+                'filename': 'sample_quality.csv'
+            }
+        else:  # process
+            data = np.random.normal(75, 3, 35).tolist()
+            return {
+                'data': data,
+                'headers': ['process_value'],
+                'filename': 'sample_process.csv'
+            }
