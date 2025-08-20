@@ -5,15 +5,21 @@ __author__ = "ESTIEM"
 __description__ = "MCP server for exploratory data analysis including I-charts, process capability, ANOVA, and Pareto analysis"
 
 # Import quick analysis for easy access
-from .quick_analysis import QuickEDA, quick_i_chart, quick_capability, quick_pareto, generate_sample_data
+from .quick_analysis import (
+    QuickEDA,
+    generate_sample_data,
+    quick_capability,
+    quick_i_chart,
+    quick_pareto,
+)
 
 __all__ = [
     "mcp_server",
-    "tools", 
+    "tools",
     "utils",
     "QuickEDA",
-    "quick_i_chart", 
+    "quick_i_chart",
     "quick_capability",
     "quick_pareto",
-    "generate_sample_data"
+    "generate_sample_data",
 ]

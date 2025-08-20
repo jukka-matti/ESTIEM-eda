@@ -3,206 +3,211 @@ Pure NumPy/SciPy statistical calculations for ESTIEM EDA
 Shared calculation engine for all platforms (MCP, Web, CLI, Colab)
 """
 
+from typing import Any
+
 import numpy as np
 from scipy import stats
-import math
-from typing import Dict, List, Any, Optional, Tuple, Union
 
 
-def calculate_i_chart(values: np.ndarray, title: str = "I-Chart Analysis") -> Dict[str, Any]:
+def calculate_i_chart(values: np.ndarray, title: str = "I-Chart Analysis") -> dict[str, Any]:
     """
     Calculate Individual Control Chart (I-Chart) statistics
-    
+
     Args:
         values: Array of numeric measurements
         title: Chart title
-        
+
     Returns:
         Dictionary with statistics and control limits
     """
     n = len(values)
     mean = np.mean(values)
-    
+
     # Moving range for sigma estimation
     moving_range = np.abs(np.diff(values))
     avg_mr = np.mean(moving_range)
-    
+
     # Control limits (using moving range method)
     # d2 constant for n=2 (moving range of 2)
     d2 = 1.128
     sigma_hat = avg_mr / d2
-    
+
     # Control limits for individuals (A2 = 3/sqrt(n) for n=1)
     ucl = mean + 3 * sigma_hat
     lcl = mean - 3 * sigma_hat
-    
+
     # Check for out-of-control points
     out_of_control = []
     for i, value in enumerate(values):
         if value > ucl or value < lcl:
             out_of_control.append(i)
-    
+
     # Western Electric Rules
     violations = check_western_electric_rules(values, mean, ucl, lcl, sigma_hat)
-    
+
     # Process capability estimate (if no spec limits, use +/-3sigma)
     natural_tolerance = 6 * sigma_hat
-    
+
     return {
-        'success': True,
-        'statistics': {
-            'sample_size': n,
-            'mean': mean,
-            'sigma_hat': sigma_hat,
-            'ucl': ucl,
-            'lcl': lcl,
-            'avg_moving_range': avg_mr,
-            'out_of_control_points': len(out_of_control),
-            'natural_tolerance': natural_tolerance
+        "success": True,
+        "statistics": {
+            "sample_size": n,
+            "mean": mean,
+            "sigma_hat": sigma_hat,
+            "ucl": ucl,
+            "lcl": lcl,
+            "avg_moving_range": avg_mr,
+            "out_of_control_points": len(out_of_control),
+            "natural_tolerance": natural_tolerance,
         },
-        'out_of_control_indices': out_of_control,
-        'western_electric_violations': violations,
-        'data_points': values.tolist(),
-        'interpretation': interpret_i_chart(len(out_of_control), violations, n),
-        'analysis_type': 'i_chart'
+        "out_of_control_indices": out_of_control,
+        "western_electric_violations": violations,
+        "data_points": values.tolist(),
+        "interpretation": interpret_i_chart(len(out_of_control), violations, n),
+        "analysis_type": "i_chart",
     }
 
 
-def calculate_process_capability(values: np.ndarray, lsl: float, usl: float, 
-                               target: float = None) -> Dict[str, Any]:
+def calculate_process_capability(
+    values: np.ndarray, lsl: float, usl: float, target: float = None
+) -> dict[str, Any]:
     """
     Calculate process capability indices (Cp, Cpk, Pp, Ppk)
-    
+
     Args:
         values: Array of numeric measurements
         lsl: Lower specification limit
         usl: Upper specification limit
         target: Target value (defaults to center of spec limits)
-        
+
     Returns:
         Dictionary with capability indices and defect analysis
     """
     n = len(values)
     mean = np.mean(values)
     std_dev = np.std(values, ddof=1)  # Sample standard deviation
-    
+
     if target is None:
         target = (lsl + usl) / 2
-    
+
     # Capability indices
     tolerance = usl - lsl
-    cp = tolerance / (6 * std_dev) if std_dev > 0 else float('inf')
-    
-    cpu = (usl - mean) / (3 * std_dev) if std_dev > 0 else float('inf')
-    cpl = (mean - lsl) / (3 * std_dev) if std_dev > 0 else float('inf')
+    cp = tolerance / (6 * std_dev) if std_dev > 0 else float("inf")
+
+    cpu = (usl - mean) / (3 * std_dev) if std_dev > 0 else float("inf")
+    cpl = (mean - lsl) / (3 * std_dev) if std_dev > 0 else float("inf")
     cpk = min(cpu, cpl)
-    
+
     # Performance indices (using population standard deviation)
-    pp = tolerance / (6 * np.std(values, ddof=0)) if np.std(values, ddof=0) > 0 else float('inf')
-    ppu = (usl - mean) / (3 * np.std(values, ddof=0)) if np.std(values, ddof=0) > 0 else float('inf')
-    ppl = (mean - lsl) / (3 * np.std(values, ddof=0)) if np.std(values, ddof=0) > 0 else float('inf')
+    pp = tolerance / (6 * np.std(values, ddof=0)) if np.std(values, ddof=0) > 0 else float("inf")
+    ppu = (
+        (usl - mean) / (3 * np.std(values, ddof=0)) if np.std(values, ddof=0) > 0 else float("inf")
+    )
+    ppl = (
+        (mean - lsl) / (3 * np.std(values, ddof=0)) if np.std(values, ddof=0) > 0 else float("inf")
+    )
     ppk = min(ppu, ppl)
-    
+
     # Defect analysis
-    z_lower = (lsl - mean) / std_dev if std_dev > 0 else -float('inf')
-    z_upper = (usl - mean) / std_dev if std_dev > 0 else float('inf')
-    
+    z_lower = (lsl - mean) / std_dev if std_dev > 0 else -float("inf")
+    z_upper = (usl - mean) / std_dev if std_dev > 0 else float("inf")
+
     ppm_lower = stats.norm.cdf(z_lower) * 1_000_000
     ppm_upper = (1 - stats.norm.cdf(z_upper)) * 1_000_000
     ppm_total = ppm_lower + ppm_upper
-    
+
     # Six Sigma level calculation
     if ppm_total > 0:
         z_shift = stats.norm.ppf(1 - ppm_total / 2_000_000)  # Two-sided
         sigma_level = z_shift + 1.5  # Traditional 1.5 sigma shift
     else:
         sigma_level = 6.0
-    
+
     return {
-        'success': True,
-        'capability_indices': {
-            'cp': cp,
-            'cpk': cpk,
-            'cpu': cpu,
-            'cpl': cpl,
-            'pp': pp,
-            'ppk': ppk,
-            'ppu': ppu,
-            'ppl': ppl
+        "success": True,
+        "capability_indices": {
+            "cp": cp,
+            "cpk": cpk,
+            "cpu": cpu,
+            "cpl": cpl,
+            "pp": pp,
+            "ppk": ppk,
+            "ppu": ppu,
+            "ppl": ppl,
         },
-        'statistics': {
-            'sample_size': n,
-            'mean': mean,
-            'std_dev': std_dev,
-            'lsl': lsl,
-            'usl': usl,
-            'target': target
+        "statistics": {
+            "sample_size": n,
+            "mean": mean,
+            "std_dev": std_dev,
+            "lsl": lsl,
+            "usl": usl,
+            "target": target,
         },
-        'defect_analysis': {
-            'ppm_lower': ppm_lower,
-            'ppm_upper': ppm_upper,
-            'ppm_total': ppm_total,
-            'sigma_level': sigma_level
+        "defect_analysis": {
+            "ppm_lower": ppm_lower,
+            "ppm_upper": ppm_upper,
+            "ppm_total": ppm_total,
+            "sigma_level": sigma_level,
         },
-        'interpretation': interpret_capability(cpk, ppm_total, sigma_level),
-        'analysis_type': 'capability'
+        "interpretation": interpret_capability(cpk, ppm_total, sigma_level),
+        "analysis_type": "capability",
     }
 
 
-def calculate_anova(groups: Dict[str, np.ndarray], alpha: float = 0.05) -> Dict[str, Any]:
+def calculate_anova(groups: dict[str, np.ndarray], alpha: float = 0.05) -> dict[str, Any]:
     """
     Calculate one-way Analysis of Variance (ANOVA)
-    
+
     Args:
         groups: Dictionary with group names as keys, data arrays as values
         alpha: Significance level
-        
+
     Returns:
         Dictionary with ANOVA results and post-hoc comparisons
     """
-    group_names = list(groups.keys())
+    list(groups.keys())
     group_data = list(groups.values())
-    
+
     # Basic statistics
     k = len(groups)  # Number of groups
     n_total = sum(len(group) for group in group_data)
-    
+
     # Grand mean
     all_data = np.concatenate(group_data)
     grand_mean = np.mean(all_data)
-    
+
     # Group means and sizes
     group_means = [np.mean(group) for group in group_data]
     group_sizes = [len(group) for group in group_data]
-    
+
     # Sum of squares
     # Between groups (SSB)
-    ssb = sum(n * (mean - grand_mean)**2 for n, mean in zip(group_sizes, group_means))
-    
+    ssb = sum(n * (mean - grand_mean) ** 2 for n, mean in zip(group_sizes, group_means, strict=False))
+
     # Within groups (SSW)
-    ssw = sum(np.sum((group - np.mean(group))**2) for group in group_data)
-    
+    ssw = sum(np.sum((group - np.mean(group)) ** 2) for group in group_data)
+
     # Total sum of squares
     sst = ssb + ssw
-    
+
     # Degrees of freedom
     df_between = k - 1
     df_within = n_total - k
-    df_total = n_total - 1
-    
+    n_total - 1
+
     # Mean squares
     msb = ssb / df_between if df_between > 0 else 0
     msw = ssw / df_within if df_within > 0 else 0
-    
+
     # F-statistic
-    f_statistic = msb / msw if msw > 0 else float('inf')
-    
+    f_statistic = msb / msw if msw > 0 else float("inf")
+
     # p-value
     p_value = 1 - stats.f.cdf(f_statistic, df_between, df_within)
-    
+
     # Significance
     significant = p_value < alpha
-    
+
     # Simple pairwise comparisons if significant (without complex corrections)
     post_hoc = None
     if significant and len(groups) <= 5:  # Only for reasonable number of groups
@@ -214,148 +219,147 @@ def calculate_anova(groups: Dict[str, np.ndarray], alpha: float = 0.05) -> Dict[
                     name1, name2 = group_names_list[i], group_names_list[j]
                     # Simple t-test between pairs
                     t_stat, p_val = stats.ttest_ind(groups[name1], groups[name2])
-                    comparisons.append({
-                        'groups': f'{name1} vs {name2}',
-                        'p_value': p_val,
-                        'significant': p_val < alpha,
-                        'mean_diff': np.mean(groups[name2]) - np.mean(groups[name1])
-                    })
-            post_hoc = {'comparisons': comparisons, 'method': 'Simple pairwise t-tests'}
+                    comparisons.append(
+                        {
+                            "groups": f"{name1} vs {name2}",
+                            "p_value": p_val,
+                            "significant": p_val < alpha,
+                            "mean_diff": np.mean(groups[name2]) - np.mean(groups[name1]),
+                        }
+                    )
+            post_hoc = {"comparisons": comparisons, "method": "Simple pairwise t-tests"}
         except Exception:
             post_hoc = None
-    
+
     results = {
-        'success': True,
-        'anova_results': {
-            'f_statistic': f_statistic,
-            'p_value': p_value,
-            'significant': significant,
-            'alpha': alpha,
-            'df_between': df_between,
-            'df_within': df_within,
-            'ssb': ssb,
-            'ssw': ssw,
-            'sst': sst,
-            'msb': msb,
-            'msw': msw
+        "success": True,
+        "anova_results": {
+            "f_statistic": f_statistic,
+            "p_value": p_value,
+            "significant": significant,
+            "alpha": alpha,
+            "df_between": df_between,
+            "df_within": df_within,
+            "ssb": ssb,
+            "ssw": ssw,
+            "sst": sst,
+            "msb": msb,
+            "msw": msw,
         },
-        'group_statistics': {
-            name: {
-                'mean': np.mean(data),
-                'std': np.std(data, ddof=1),
-                'size': len(data)
-            } for name, data in groups.items()
+        "group_statistics": {
+            name: {"mean": np.mean(data), "std": np.std(data, ddof=1), "size": len(data)}
+            for name, data in groups.items()
         },
-        'grand_mean': grand_mean,
-        'interpretation': interpret_anova(f_statistic, p_value, significant, k),
-        'analysis_type': 'anova'
+        "grand_mean": grand_mean,
+        "interpretation": interpret_anova(f_statistic, p_value, significant, k),
+        "analysis_type": "anova",
     }
-    
+
     if post_hoc:
-        results['post_hoc'] = post_hoc
-        
+        results["post_hoc"] = post_hoc
+
     return results
 
 
-def calculate_pareto(data: Dict[str, float], threshold: float = 0.8) -> Dict[str, Any]:
+def calculate_pareto(data: dict[str, float], threshold: float = 0.8) -> dict[str, Any]:
     """
     Calculate Pareto analysis (80/20 rule)
-    
+
     Args:
         data: Dictionary with categories as keys, values as values
         threshold: Threshold for identifying vital few (default 0.8 for 80%)
-        
+
     Returns:
         Dictionary with Pareto analysis results
     """
     if not data:
         raise ValueError("Empty data provided for Pareto analysis")
-    
+
     # Sort by value (descending)
     sorted_items = sorted(data.items(), key=lambda x: x[1], reverse=True)
-    
+
     # Calculate percentages and cumulative percentages
     total = sum(data.values())
-    
+
     categories = []
     values = []
     percentages = []
     cumulative_percentages = []
-    
+
     cumulative = 0
     for category, value in sorted_items:
         categories.append(category)
         values.append(value)
-        
+
         percentage = (value / total) * 100
         percentages.append(percentage)
-        
+
         cumulative += percentage
         cumulative_percentages.append(cumulative)
-    
+
     # Find vital few (categories contributing to threshold% of total)
     vital_few_indices = []
     for i, cum_pct in enumerate(cumulative_percentages):
         vital_few_indices.append(i)
         if cum_pct >= threshold * 100:
             break
-    
+
     vital_few_categories = [categories[i] for i in vital_few_indices]
     vital_few_percentage = cumulative_percentages[vital_few_indices[-1]]
-    
+
     # Calculate Gini coefficient
     gini = calculate_gini_coefficient(values)
-    
+
     return {
-        'success': True,
-        'categories': categories,
-        'values': values,
-        'percentages': percentages,
-        'cumulative_percentages': cumulative_percentages,
-        'vital_few': {
-            'categories': vital_few_categories,
-            'count': len(vital_few_categories),
-            'percentage': vital_few_percentage
+        "success": True,
+        "categories": categories,
+        "values": values,
+        "percentages": percentages,
+        "cumulative_percentages": cumulative_percentages,
+        "vital_few": {
+            "categories": vital_few_categories,
+            "count": len(vital_few_categories),
+            "percentage": vital_few_percentage,
         },
-        'gini_coefficient': {
-            'value': gini,
-            'interpretation': interpret_gini_coefficient(gini)
-        },
-        'total_value': total,
-        'interpretation': interpret_pareto(len(vital_few_categories), len(categories), vital_few_percentage),
-        'analysis_type': 'pareto'
+        "gini_coefficient": {"value": gini, "interpretation": interpret_gini_coefficient(gini)},
+        "total_value": total,
+        "interpretation": interpret_pareto(
+            len(vital_few_categories), len(categories), vital_few_percentage
+        ),
+        "analysis_type": "pareto",
     }
 
 
-def calculate_probability_plot(values: np.ndarray, distribution: str = 'normal', 
-                             confidence_level: float = 0.95) -> Dict[str, Any]:
+def calculate_probability_plot(
+    values: np.ndarray, distribution: str = "normal", confidence_level: float = 0.95
+) -> dict[str, Any]:
     """
     Calculate probability plot for distribution assessment
-    
+
     Args:
         values: Array of numeric measurements
         distribution: Distribution type ('normal', 'lognormal', 'weibull')
         confidence_level: Confidence level for intervals
-        
+
     Returns:
         Dictionary with probability plot results and goodness of fit
     """
     n = len(values)
     sorted_values = np.sort(values)
-    
+
     # Calculate plotting positions (median rank)
     plotting_positions = np.array([(i + 0.5) / n for i in range(n)])
-    
+
     # Transform data based on distribution
-    if distribution == 'normal':
+    if distribution == "normal":
         theoretical_quantiles = stats.norm.ppf(plotting_positions)
         transformed_data = sorted_values
-    elif distribution == 'lognormal':
+    elif distribution == "lognormal":
         if np.any(sorted_values <= 0):
             raise ValueError("Lognormal distribution requires positive values")
         theoretical_quantiles = stats.norm.ppf(plotting_positions)
         transformed_data = np.log(sorted_values)
-    elif distribution == 'weibull':
+    elif distribution == "weibull":
         if np.any(sorted_values <= 0):
             raise ValueError("Weibull distribution requires positive values")
         # Use log-log transformation for Weibull
@@ -363,21 +367,23 @@ def calculate_probability_plot(values: np.ndarray, distribution: str = 'normal',
         transformed_data = np.log(sorted_values)
     else:
         raise ValueError(f"Unsupported distribution: {distribution}")
-    
+
     # Calculate correlation coefficient
     correlation = np.corrcoef(theoretical_quantiles, transformed_data)[0, 1]
-    
+
     # Fit line
-    slope, intercept, r_value, p_value, std_err = stats.linregress(theoretical_quantiles, transformed_data)
-    
+    slope, intercept, r_value, p_value, std_err = stats.linregress(
+        theoretical_quantiles, transformed_data
+    )
+
     # Calculate confidence intervals
     alpha = 1 - confidence_level
-    t_critical = stats.t.ppf(1 - alpha/2, n - 2)
-    
+    stats.t.ppf(1 - alpha / 2, n - 2)
+
     # Prediction intervals for new observations
     residuals = transformed_data - (slope * theoretical_quantiles + intercept)
     s_res = np.std(residuals, ddof=2)
-    
+
     # Calculate outliers (points outside confidence bands)
     outliers = []
     for i in range(n):
@@ -385,115 +391,125 @@ def calculate_probability_plot(values: np.ndarray, distribution: str = 'normal',
         deviation = abs(transformed_data[i] - expected)
         if deviation > 2 * s_res:  # Simple outlier detection
             outliers.append(i)
-    
+
     # Normality tests
-    if distribution == 'normal':
+    if distribution == "normal":
         # Anderson-Darling test
-        ad_stat, ad_critical, ad_significance = stats.anderson(values, dist='norm')
+        ad_stat, ad_critical, ad_significance = stats.anderson(values, dist="norm")
         normality_test = {
-            'test': 'Anderson-Darling',
-            'statistic': ad_stat,
-            'critical_values': ad_critical.tolist(),
-            'significance_levels': ad_significance.tolist(),
-            'p_value': estimate_anderson_darling_p_value(ad_stat, n)
+            "test": "Anderson-Darling",
+            "statistic": ad_stat,
+            "critical_values": ad_critical.tolist(),
+            "significance_levels": ad_significance.tolist(),
+            "p_value": estimate_anderson_darling_p_value(ad_stat, n),
         }
     else:
         normality_test = None
-    
+
     return {
-        'success': True,
-        'distribution': distribution,
-        'plotting_positions': plotting_positions.tolist(),
-        'theoretical_quantiles': theoretical_quantiles.tolist(),
-        'sorted_values': sorted_values.tolist(),
-        'transformed_data': transformed_data.tolist(),
-        'goodness_of_fit': {
-            'correlation_coefficient': correlation,
-            'r_squared': r_value**2,
-            'slope': slope,
-            'intercept': intercept,
-            'interpretation': interpret_correlation(correlation, distribution)
+        "success": True,
+        "distribution": distribution,
+        "plotting_positions": plotting_positions.tolist(),
+        "theoretical_quantiles": theoretical_quantiles.tolist(),
+        "sorted_values": sorted_values.tolist(),
+        "transformed_data": transformed_data.tolist(),
+        "goodness_of_fit": {
+            "correlation_coefficient": correlation,
+            "r_squared": r_value**2,
+            "slope": slope,
+            "intercept": intercept,
+            "interpretation": interpret_correlation(correlation, distribution),
         },
-        'outliers': {
-            'indices': outliers,
-            'count': len(outliers),
-            'values': [sorted_values[i] for i in outliers]
+        "outliers": {
+            "indices": outliers,
+            "count": len(outliers),
+            "values": [sorted_values[i] for i in outliers],
         },
-        'confidence_level': confidence_level,
-        'normality_test': normality_test,
-        'interpretation': interpret_probability_plot(correlation, len(outliers), distribution),
-        'analysis_type': 'probability_plot'
+        "confidence_level": confidence_level,
+        "normality_test": normality_test,
+        "interpretation": interpret_probability_plot(correlation, len(outliers), distribution),
+        "analysis_type": "probability_plot",
     }
 
 
 # Helper functions
 
-def check_western_electric_rules(values: np.ndarray, mean: float, ucl: float, 
-                               lcl: float, sigma: float) -> List[Dict[str, Any]]:
+
+def check_western_electric_rules(
+    values: np.ndarray, mean: float, ucl: float, lcl: float, sigma: float
+) -> list[dict[str, Any]]:
     """Check Western Electric rules for control chart violations"""
     violations = []
     n = len(values)
-    
+
     # Rule 1: Point beyond control limits (already checked in main function)
-    
+
     # Rule 2: 2 out of 3 consecutive points beyond 2-sigma
     two_sigma_upper = mean + 2 * sigma
     two_sigma_lower = mean - 2 * sigma
-    
+
     for i in range(n - 2):
-        beyond_2sigma = sum(1 for j in range(i, i + 3) 
-                           if values[j] > two_sigma_upper or values[j] < two_sigma_lower)
+        beyond_2sigma = sum(
+            1 for j in range(i, i + 3) if values[j] > two_sigma_upper or values[j] < two_sigma_lower
+        )
         if beyond_2sigma >= 2:
-            violations.append({
-                'rule': 2,
-                'description': '2 out of 3 points beyond 2-sigma',
-                'points': list(range(i, i + 3))
-            })
-    
+            violations.append(
+                {
+                    "rule": 2,
+                    "description": "2 out of 3 points beyond 2-sigma",
+                    "points": list(range(i, i + 3)),
+                }
+            )
+
     # Rule 3: 4 out of 5 consecutive points beyond 1-sigma
     one_sigma_upper = mean + sigma
     one_sigma_lower = mean - sigma
-    
+
     for i in range(n - 4):
-        beyond_1sigma = sum(1 for j in range(i, i + 5) 
-                           if values[j] > one_sigma_upper or values[j] < one_sigma_lower)
+        beyond_1sigma = sum(
+            1 for j in range(i, i + 5) if values[j] > one_sigma_upper or values[j] < one_sigma_lower
+        )
         if beyond_1sigma >= 4:
-            violations.append({
-                'rule': 3,
-                'description': '4 out of 5 points beyond 1-sigma',
-                'points': list(range(i, i + 5))
-            })
-    
+            violations.append(
+                {
+                    "rule": 3,
+                    "description": "4 out of 5 points beyond 1-sigma",
+                    "points": list(range(i, i + 5)),
+                }
+            )
+
     # Rule 4: 8 consecutive points on one side of center line
     for i in range(n - 7):
         all_above = all(values[j] > mean for j in range(i, i + 8))
         all_below = all(values[j] < mean for j in range(i, i + 8))
         if all_above or all_below:
-            violations.append({
-                'rule': 4,
-                'description': '8 consecutive points on one side of center line',
-                'points': list(range(i, i + 8))
-            })
-    
+            violations.append(
+                {
+                    "rule": 4,
+                    "description": "8 consecutive points on one side of center line",
+                    "points": list(range(i, i + 8)),
+                }
+            )
+
     return violations
 
 
-def calculate_gini_coefficient(values: List[float]) -> float:
+def calculate_gini_coefficient(values: list[float]) -> float:
     """Calculate Gini coefficient for inequality measurement"""
     sorted_values = sorted(values)
     n = len(sorted_values)
-    
+
     if n == 0:
         return 0
-    
+
     # Calculate Gini coefficient
     total = sum(sorted_values)
     if total == 0:
         return 0
-    
+
     gini_sum = sum((2 * (i + 1) - n - 1) * value for i, value in enumerate(sorted_values))
     gini = gini_sum / (n * total)
-    
+
     return gini
 
 
@@ -520,12 +536,13 @@ def estimate_anderson_darling_p_value(statistic: float, n: int) -> float:
 
 # Interpretation functions
 
-def interpret_i_chart(out_of_control_count: int, violations: List, n: int) -> str:
+
+def interpret_i_chart(out_of_control_count: int, violations: list, n: int) -> str:
     """Generate interpretation for I-Chart results"""
     if out_of_control_count == 0 and not violations:
         return "Process appears to be in statistical control with no points beyond control limits or Western Electric rule violations."
     elif out_of_control_count > 0:
-        return f"Process shows {out_of_control_count} out-of-control points ({out_of_control_count/n*100:.1f}% of data). Investigate special causes."
+        return f"Process shows {out_of_control_count} out-of-control points ({out_of_control_count / n * 100:.1f}% of data). Investigate special causes."
     else:
         return f"Process has {len(violations)} Western Electric rule violations. Pattern suggests potential process instability."
 
@@ -540,7 +557,7 @@ def interpret_capability(cpk: float, ppm: float, sigma_level: float) -> str:
         capability = "Marginal"
     else:
         capability = "Poor"
-    
+
     return f"Process capability is {capability} (Cpk = {cpk:.3f}). Expected defect rate: {ppm:.0f} PPM ({sigma_level:.1f} sigma level)."
 
 
@@ -554,7 +571,7 @@ def interpret_anova(f_stat: float, p_value: float, significant: bool, k: int) ->
 
 def interpret_pareto(vital_count: int, total_count: int, vital_percentage: float) -> str:
     """Generate interpretation for Pareto analysis"""
-    return f"Pareto analysis identifies {vital_count} out of {total_count} categories ({vital_count/total_count*100:.1f}%) as 'vital few', accounting for {vital_percentage:.1f}% of total impact."
+    return f"Pareto analysis identifies {vital_count} out of {total_count} categories ({vital_count / total_count * 100:.1f}%) as 'vital few', accounting for {vital_percentage:.1f}% of total impact."
 
 
 def interpret_probability_plot(correlation: float, outlier_count: int, distribution: str) -> str:
@@ -567,9 +584,9 @@ def interpret_probability_plot(correlation: float, outlier_count: int, distribut
         fit = "Fair"
     else:
         fit = "Poor"
-    
+
     outlier_text = f" {outlier_count} potential outliers detected." if outlier_count > 0 else ""
-    
+
     return f"{fit} fit to {distribution} distribution (r = {correlation:.4f}).{outlier_text}"
 
 
