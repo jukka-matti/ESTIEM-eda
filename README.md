@@ -7,7 +7,7 @@
 [![ESTIEM](https://img.shields.io/badge/ESTIEM-60k%2B_Students-green.svg)](https://estiem.org)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jukka-matti/ESTIEM-eda/blob/main/notebooks/ESTIEM_EDA_Quick_Start.ipynb)
 
-**Comprehensive exploratory data analysis toolkit** with multiple access methods: Web App, Python Package, CLI Tool, Google Colab, and Claude Desktop integration via MCP protocol. Built with **pure NumPy/SciPy** for maximum reliability and compatibility.
+**Professional Six Sigma toolkit** with 3 core analysis tools and multiple access methods: Web App, Python Package, CLI Tool, Google Colab, and Claude Desktop integration via MCP protocol. Built with **pure NumPy/SciPy** for maximum reliability and compatibility.
 
 ## 🚀 Quick Start
 
@@ -43,9 +43,9 @@ results = eda.analyze_all('measurement', lsl=9.0, usl=11.0, group_column='line')
 estiem-eda sample-data --type manufacturing
 
 # Run analyses
-estiem-eda i-chart sample_data.csv
-estiem-eda capability sample_data.csv --lsl 9.0 --usl 11.0
+estiem-eda process-analysis sample_data.csv --column measurement --lsl 9.0 --usl 11.0
 estiem-eda anova sample_data.csv --value measurement --group line
+estiem-eda pareto sample_data.csv --category defect_type --value count
 ```
 
 ### 🤖 Claude Desktop Integration
@@ -61,30 +61,35 @@ Add to your Claude Desktop config:
 }
 ```
 
-## 📊 Statistical Tools Available
+## 📊 Core Analysis Tools
 
 | Tool | Description | Use Case |
 |------|-------------|----------|
-| **I-Chart** | Individual control charts with Western Electric rules | Process monitoring, SPC |
-| **Process Capability** | Cp/Cpk analysis with Six Sigma levels | Process qualification |
-| **ANOVA** | One-way ANOVA with pairwise comparisons | Group comparisons |
-| **Pareto Analysis** | 80/20 rule identification | Root cause analysis |
-| **Probability Plot** | Normal/Weibull/Lognormal plots with 95% confidence intervals | Distribution assessment, outlier detection |
+| **🔬 Process Analysis** | Complete process assessment: stability (I-Chart), capability (Cp/Cpk), and distribution analysis | Individual measurement analysis, Six Sigma studies |
+| **📊 ANOVA** | One-way ANOVA with pairwise comparisons and boxplot visualization | Multi-group statistical comparison |
+| **📉 Pareto Analysis** | 80/20 rule identification with cumulative percentage analysis | Root cause analysis, priority setting |
 
 ## 💡 Usage Examples
 
 ### Quick Analysis
 ```python
-from estiem_eda import quick_i_chart, quick_capability, quick_pareto
+from estiem_eda import quick_process_analysis, quick_anova, quick_pareto
 
-# Quick analyses without data loading
+# Complete process analysis
 measurements = [9.8, 10.2, 9.9, 10.1, 10.3, 9.7, 10.0, 10.4]
+process_results = quick_process_analysis(
+    measurements, 
+    lsl=9.5, usl=10.5, 
+    distribution='normal'
+)
 
-# Control chart
-i_results = quick_i_chart(measurements)
-
-# Process capability  
-cap_results = quick_capability(measurements, lsl=9.5, usl=10.5)
+# Group comparison
+groups = {
+    'Line_A': [9.8, 10.2, 9.9, 10.1],
+    'Line_B': [10.1, 10.3, 10.0, 10.4], 
+    'Line_C': [9.7, 9.9, 9.8, 10.0]
+}
+anova_results = quick_anova(groups)
 
 # Pareto analysis
 defects = {'Surface': 45, 'Dimensional': 32, 'Assembly': 18}
@@ -99,23 +104,33 @@ from estiem_eda import QuickEDA, generate_sample_data
 data = generate_sample_data('manufacturing', 100)
 eda = QuickEDA().load_data(data).preview()
 
-# Run all analyses
-results = eda.analyze_all(
+# Run comprehensive process analysis
+results = eda.process_analysis(
     measurement_column='measurement',
     lsl=9.0, usl=11.0,
+    distribution='normal'
+)
+
+# Multi-group comparison
+anova_results = eda.anova_analysis(
+    value_column='measurement',
     group_column='line'
 )
 ```
 
 ### With Claude Desktop
 ```
-"Analyze this manufacturing data for process capability:
+"Run complete process analysis on this manufacturing data:
 Data: [9.8, 10.2, 9.9, 10.1, 10.3, 9.7, 10.0, 10.4]
-LSL: 9.5, USL: 10.5"
+LSL: 9.5, USL: 10.5, Distribution: normal"
 
-"Create a probability plot to assess normality:
-Data: [9.8, 10.2, 9.9, 10.1, 10.3, 9.7, 10.0, 10.4, 10.2, 9.9]
-Check for outliers and distribution fit"
+"Compare these production lines using ANOVA:
+Line_A: [9.8, 10.2, 9.9, 10.1]
+Line_B: [10.1, 10.3, 10.0, 10.4] 
+Line_C: [9.7, 9.9, 9.8, 10.0]"
+
+"Create Pareto analysis for these defect counts:
+Surface: 45, Dimensional: 32, Assembly: 18, Material: 12, Other: 8"
 ```
 
 ## 🔧 Installation Options

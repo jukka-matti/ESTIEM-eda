@@ -1,8 +1,8 @@
-# 📡 ESTIEM EDA Enhanced MCP Server API Specification
+# 📡 ESTIEM EDA Streamlined MCP Server API Specification
 
 ## 📋 Document Information
 
-**API Version**: 2.0.0  
+**API Version**: 3.0.0  
 **Protocol**: Model Context Protocol (MCP) 2025-06-18  
 **Transport**: JSON-RPC 2.0 over stdio  
 **Last Updated**: August 20, 2025  
@@ -11,13 +11,13 @@
 
 ## 🌟 API Overview
 
-The Enhanced ESTIEM EDA MCP Server provides statistical process control tools with multi-format visualization capabilities. The server automatically detects client capabilities and provides optimal response formats.
+The Streamlined ESTIEM EDA MCP Server provides professional Six Sigma tools with focused, comprehensive analysis capabilities. The server delivers optimal response formats for statistical process control workflows.
 
 ### Core Features
-- **5 Statistical Tools**: I-Chart, Process Capability, ANOVA, Pareto Analysis, Probability Plots
-- **Dual Implementation**: Server-side (NumPy/SciPy) + Browser-compatible (Pyodide) cores
+- **3 Core Tools**: Process Analysis, ANOVA, Pareto Analysis
+- **Professional Workflow**: Unified process assessment combining stability, capability, and distribution analysis
 - **HTML Visualizations**: Plotly charts with professional ESTIEM branding
-- **Text Summaries**: Human-readable statistical interpretations
+- **Comprehensive Interpretations**: Human-readable statistical insights with actionable recommendations
 - **Unified Format**: Consistent responses across MCP and Web platforms
 
 ---
@@ -70,28 +70,18 @@ The Enhanced ESTIEM EDA MCP Server provides statistical process control tools wi
 {
   "tools": [
     {
-      "name": "i_chart",
-      "description": "Individual control chart for process monitoring and SPC",
-      "inputSchema": { /* JSON Schema */ }
-    },
-    {
-      "name": "process_capability", 
-      "description": "Process capability analysis with Cp/Cpk indices",
+      "name": "process_analysis",
+      "description": "Comprehensive process assessment combining stability, capability, and distribution analysis",
       "inputSchema": { /* JSON Schema */ }
     },
     {
       "name": "anova_boxplot",
-      "description": "One-way ANOVA for comparing group means",
+      "description": "One-way ANOVA for comparing group means with statistical significance testing",
       "inputSchema": { /* JSON Schema */ }
     },
     {
       "name": "pareto_analysis",
-      "description": "Pareto analysis for vital few identification",
-      "inputSchema": { /* JSON Schema */ }
-    },
-    {
-      "name": "probability_plot",
-      "description": "Probability plots for distribution assessment",
+      "description": "Pareto analysis for vital few identification using 80/20 principle",
       "inputSchema": { /* JSON Schema */ }
     }
   ]
@@ -100,12 +90,12 @@ The Enhanced ESTIEM EDA MCP Server provides statistical process control tools wi
 
 ---
 
-## 📊 Statistical Tools API
+## 📊 Core Analysis Tools API
 
-### 1. I-Chart Analysis
+### 1. Process Analysis
 
-**Tool Name**: `i_chart`  
-**Description**: Individual control chart for process monitoring and statistical process control.
+**Tool Name**: `process_analysis`  
+**Description**: Comprehensive process assessment combining stability (I-Chart), capability (Cp/Cpk), and distribution analysis in a unified Six Sigma workflow.
 
 #### Input Schema
 ```json
