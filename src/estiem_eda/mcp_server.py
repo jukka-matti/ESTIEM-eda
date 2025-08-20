@@ -1,0 +1,283 @@
+"""ESTIEM EDA MCP Server for Statistical Process Control.
+
+This module implements the Model Context Protocol (MCP) server that provides
+exploratory data analysis tools for Lean Six Sigma education.
+"""
+
+import json
+import sys
+import logging
+from typing import Dict, Any, List, Optional
+
+
+class ESTIEMMCPServer:
+    """MCP Server for ESTIEM EDA Statistical Tools.
+    
+    Implements MCP protocol v1.0 for exploratory data analysis tools
+    used in Lean Six Sigma education.
+    """
+    
+    def __init__(self):
+        """Initialize the MCP server with tools and configuration."""
+        self.protocol_version = "1.0"
+        self.server_info = {
+            "name": "estiem-eda",
+            "version": "1.0.0",
+            "description": "Statistical Process Control tools for Lean Six Sigma"
+        }
+        self.setup_logging()
+        self.initialize_tools()
+    
+    def setup_logging(self) -> None:
+        """Configure logging to stderr to not interfere with stdio."""
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[logging.StreamHandler(sys.stderr)]
+        )
+        self.logger = logging.getLogger(__name__)
+        self.logger.info("ESTIEM EDA MCP Server initializing...")
+    
+    def initialize_tools(self) -> None:
+        """Import and initialize all statistical tools."""
+        # Import tools dynamically to handle missing implementations gracefully
+        self.tools = {}
+        
+        try:
+            from .tools.i_chart import IChartTool
+            self.tools["i_chart"] = IChartTool()
+            self.logger.debug("I-Chart tool loaded successfully")
+        except ImportError as e:
+            self.logger.warning(f"I-Chart tool not available: {e}")
+        
+        try:
+            from .tools.capability import CapabilityTool
+            self.tools["process_capability"] = CapabilityTool()
+            self.logger.debug("Process Capability tool loaded successfully")
+        except ImportError as e:
+            self.logger.warning(f"Process Capability tool not available: {e}")
+        
+        try:
+            from .tools.anova import ANOVATool
+            self.tools["anova_boxplot"] = ANOVATool()
+            self.logger.debug("ANOVA tool loaded successfully")
+        except ImportError as e:
+            self.logger.warning(f"ANOVA tool not available: {e}")
+        
+        try:
+            from .tools.pareto import ParetoTool
+            self.tools["pareto_analysis"] = ParetoTool()
+            self.logger.debug("Pareto Analysis tool loaded successfully")
+        except ImportError as e:
+            self.logger.warning(f"Pareto Analysis tool not available: {e}")
+        
+        try:
+            from .tools.probability_plot import ProbabilityPlotTool
+            self.tools["probability_plot"] = ProbabilityPlotTool()
+            self.logger.debug("Probability Plot tool loaded successfully")
+        except ImportError as e:
+            self.logger.warning(f"Probability Plot tool not available: {e}")
+        
+        self.logger.info(f"Initialized {len(self.tools)} statistical tools")
+    
+    def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Route JSON-RPC requests to appropriate handlers.
+        
+        Args:
+            request: JSON-RPC request dictionary.
+            
+        Returns:
+            Response dictionary following JSON-RPC format.
+        """
+        method = request.get("method")
+        params = request.get("params", {})
+        
+        self.logger.debug(f"Handling request: method={method}")
+        
+        handlers = {
+            "initialize": self.handle_initialize,
+            "tools/list": self.handle_list_tools,
+            "tools/call": self.handle_call_tool
+        }
+        
+        handler = handlers.get(method)
+        if handler:
+            try:
+                return handler(params)
+            except Exception as e:
+                self.logger.error(f"Handler error for {method}: {e}")
+                return self.error_response(-32603, f"Internal error: {str(e)}")
+        else:
+            self.logger.error(f"Unknown method: {method}")
+            return self.error_response(-32601, f"Method not found: {method}")
+    
+    def handle_initialize(self, params: Dict) -> Dict:
+        """Handle initialization request.
+        
+        Args:
+            params: Initialization parameters from client.
+            
+        Returns:
+            Server capabilities and information.
+        """
+        self.logger.info("Handling initialize request")
+        
+        return {
+            "protocolVersion": self.protocol_version,
+            "capabilities": {
+                "tools": {"listChanged": True},
+                "resources": {"subscribe": False}
+            },
+            "serverInfo": self.server_info
+        }
+    
+    def handle_list_tools(self, params: Dict) -> Dict:
+        """Return list of available tools.
+        
+        Args:
+            params: Parameters (unused for tool listing).
+            
+        Returns:
+            Dictionary containing list of available tools with their schemas.
+        """
+        self.logger.debug("Listing available tools")
+        
+        tools_list = []
+        for name, tool in self.tools.items():
+            try:
+                tools_list.append({
+                    "name": name,
+                    "description": tool.description,
+                    "inputSchema": tool.get_input_schema()
+                })
+            except Exception as e:
+                self.logger.error(f"Error getting schema for tool {name}: {e}")
+        
+        return {"tools": tools_list}
+    
+    def handle_call_tool(self, params: Dict) -> Dict:
+        """Execute a tool and return results.
+        
+        Args:
+            params: Tool execution parameters including tool name and arguments.
+            
+        Returns:
+            Tool execution results or error response.
+        """
+        tool_name = params.get("name")
+        arguments = params.get("arguments", {})
+        
+        self.logger.info(f"Executing tool: {tool_name}")
+        
+        if tool_name not in self.tools:
+            return self.error_response(-32602, f"Unknown tool: {tool_name}")
+        
+        try:
+            result = self.tools[tool_name].execute(arguments)
+            self.logger.debug(f"Tool {tool_name} executed successfully")
+            
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": json.dumps(result, indent=2)
+                }]
+            }
+        except ValueError as e:
+            self.logger.error(f"Tool validation error for {tool_name}: {e}")
+            return self.error_response(-32602, f"Invalid parameters: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"Tool execution error for {tool_name}: {e}")
+            return self.error_response(-32603, f"Execution error: {str(e)}")
+    
+    def error_response(self, code: int, message: str) -> Dict:
+        """Create error response following JSON-RPC format.
+        
+        Args:
+            code: Error code (following JSON-RPC error code conventions).
+            message: Human-readable error message.
+            
+        Returns:
+            Error response dictionary.
+        """
+        return {
+            "error": {
+                "code": code,
+                "message": message
+            }
+        }
+    
+    def run(self) -> None:
+        """Main server loop using stdio transport.
+        
+        Reads JSON-RPC requests from stdin and writes responses to stdout.
+        Continues until EOF or error.
+        """
+        self.logger.info("ESTIEM EDA MCP Server started - listening on stdin")
+        
+        while True:
+            try:
+                # Read request from stdin
+                line = sys.stdin.readline()
+                if not line:
+                    self.logger.info("EOF received, shutting down server")
+                    break
+                
+                line = line.strip()
+                if not line:
+                    continue
+                
+                # Parse JSON-RPC request
+                try:
+                    request = json.loads(line)
+                except json.JSONDecodeError as e:
+                    self.logger.error(f"Invalid JSON received: {e}")
+                    continue
+                
+                self.logger.debug(f"Received request: {request}")
+                
+                # Handle request and get response
+                if "error" in request:
+                    # This is an error response, not a request
+                    self.logger.error(f"Received error from client: {request}")
+                    continue
+                
+                result = self.handle_request(request)
+                
+                # Create JSON-RPC response
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": request.get("id")
+                }
+                
+                if "error" in result:
+                    response["error"] = result["error"]
+                else:
+                    response["result"] = result
+                
+                # Send response to stdout
+                response_json = json.dumps(response)
+                sys.stdout.write(response_json + "\n")
+                sys.stdout.flush()
+                
+                self.logger.debug(f"Sent response: {response}")
+                
+            except KeyboardInterrupt:
+                self.logger.info("Keyboard interrupt received, shutting down")
+                break
+            except Exception as e:
+                self.logger.error(f"Unexpected server error: {e}")
+                # Continue running despite errors
+
+
+def main() -> None:
+    """Main entry point for the MCP server."""
+    try:
+        server = ESTIEMMCPServer()
+        server.run()
+    except Exception as e:
+        logging.error(f"Failed to start server: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

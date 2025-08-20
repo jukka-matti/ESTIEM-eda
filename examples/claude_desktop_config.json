@@ -1,0 +1,43 @@
+{
+  "mcpServers": {
+    "estiem-eda": {
+      "command": "python",
+      "args": [
+        "C:/path/to/ESTIEM-eda/src/estiem_eda/mcp_server.py"
+      ],
+      "description": "ESTIEM Exploratory Data Analysis Toolkit - I-Charts, Capability, ANOVA, Pareto"
+    }
+  }
+}
+
+<!-- 
+SETUP INSTRUCTIONS:
+
+1. Save this file to your Claude Desktop configuration directory:
+   - Windows: %APPDATA%/Claude/claude_desktop_config.json  
+   - Mac: ~/Library/Application Support/Claude/claude_desktop_config.json
+   - Linux: ~/.config/claude/claude_desktop_config.json
+
+2. Update the path in "args" to point to your actual ESTIEM-eda installation
+
+3. Restart Claude Desktop
+
+4. Test with: "List available statistical tools"
+
+EXAMPLE USAGE WITH CLAUDE:
+
+"Analyze this manufacturing data for process capability:
+Data: [10.1, 9.9, 10.2, 10.0, 9.8, 10.3, 10.1, 9.9, 10.2, 10.0, 9.7, 10.4]
+LSL: 9.5, USL: 10.5, Target: 10.0"
+
+"Create a Pareto chart for these defects:
+Surface defects: 45, Dimensional issues: 32, Assembly problems: 18, Material flaws: 12, Other: 8"
+
+"Compare these three production lines with ANOVA:
+Line A: [10.2, 10.1, 9.9, 10.3, 10.0]  
+Line B: [12.1, 11.9, 12.2, 12.0, 11.8]
+Line C: [11.1, 10.9, 11.2, 11.0, 10.8]"
+
+"Create an I-chart for this process data:
+[10.1, 9.9, 10.2, 10.0, 9.8, 10.3, 10.1, 9.9, 10.2, 10.0, 9.7, 10.4, 10.2, 9.8, 10.1]"
+-->

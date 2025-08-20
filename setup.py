@@ -10,7 +10,7 @@ setup(
     name="estiem-eda-toolkit",
     version="0.1.0",
     author="ESTIEM",
-    description="MCP server for statistical analysis including I-charts, process capability, ANOVA, and Pareto analysis",
+    description="MCP server for exploratory data analysis including I-charts, process capability, ANOVA, and Pareto analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ESTIEM/eda-toolkit",
